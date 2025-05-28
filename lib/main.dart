@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart'; 
 import 'package:provider/provider.dart';
 
 import 'core/theme/app_theme.dart';
@@ -7,7 +8,6 @@ import 'core/providers/dashboard_provider.dart';
 import 'core/providers/transaction_provider.dart';
 import 'core/providers/settings_provider.dart';
 import 'core/router/app_router.dart';
-
 
 void main() {
   runApp(const JamaaApp());
@@ -36,11 +36,22 @@ class JamaaApp extends StatelessWidget {
                 ? ThemeMode.dark 
                 : ThemeMode.light,
             routerConfig: AppRouter.router,
-            locale: Locale(settingsProvider.language),
-            supportedLocales: const [
-              Locale('fr', ''),
-              Locale('en', ''),
+            
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
             ],
+            
+            // Mise à jour des locales supportées
+            supportedLocales: const [
+              Locale('fr', 'FR'), 
+              Locale('en', 'US'),  
+            ],
+            
+            // Locale dynamique basée sur les paramètres utilisateur
+            locale: Locale(settingsProvider.language, 
+                          settingsProvider.language == 'fr' ? 'FR' : 'US'),
           );
         },
       ),

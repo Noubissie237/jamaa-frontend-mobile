@@ -482,7 +482,7 @@ class ProfileScreen extends StatelessWidget {
                 ListTile(
                   leading: const Icon(Icons.phone),
                   title: const Text('Téléphone'),
-                  subtitle: const Text('+237 123 456 789'),
+                  subtitle: const Text('+237 690 232 120'),
                   contentPadding: EdgeInsets.zero,
                   onTap: () {
                     // TODO: Ouvrir l'app téléphone
