@@ -9,4 +9,5 @@ class ApiConstants {
 
   // Endpoints
   static const String login = '$authService/auth/login';
+  static const String register = '$baseUrl/SERVICE-USERS/graphql';
 }
