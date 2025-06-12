@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -18,11 +19,15 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _navigateToNext() async {
     await Future.delayed(const Duration(seconds: 3));
-    
+    final prefs = await SharedPreferences.getInstance();
+    final hasSeenOnboarding = prefs.getBool('onboarding_seen') ?? false;
+
     if (mounted) {
-      // Vérifier si l'utilisateur a déjà vu l'onboarding
-      // Pour l'instant, on va toujours vers l'onboarding
-      context.go('/onboarding');
+      if (hasSeenOnboarding) {
+        context.go('/login'); // Ou la route principale si différent
+      } else {
+        context.go('/onboarding');
+      }
     }
   }
 

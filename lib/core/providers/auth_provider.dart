@@ -1,5 +1,10 @@
 import 'package:flutter/foundation.dart';
 import '../models/user.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/material.dart'; 
+import '../constants/api_constants.dart';
 
 class AuthProvider extends ChangeNotifier {
   User? _currentUser;
@@ -12,34 +17,82 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  Future<void> login(String email, String password) async {
+  Future<void> login(String login, String password) async {
     _setLoading(true);
     _error = null;
 
     try {
-      // Simulation d'appel API
-      await Future.delayed(const Duration(seconds: 2));
-      
-      // Mock user data
-      _currentUser = User(
-        id: '1',
-        firstName: 'Noubissie',
-        lastName: 'Wilfried',
-        email: email,
-        phone: '+237690232120',
-        cniNumber: '123456789',
-        createdAt: DateTime.now(),
-        isVerified: true,
+      final apiUrl = ApiConstants.login;
+      debugPrint('[LOGIN] Tentative de connexion vers $apiUrl');
+      debugPrint('[LOGIN] Body : {login: $login, password: $password}');
+
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'login': login, 'password': password}),
       );
-      
-      _isAuthenticated = true;
-      notifyListeners();
-    } catch (e) {
+
+      debugPrint('[LOGIN] Statut réponse : ${response.statusCode}');
+      debugPrint('[LOGIN] Corps réponse : ${response.body}');
+
+      if (response.statusCode == 200) {
+        final token = response.body;
+        debugPrint('[LOGIN] Token reçu : $token');
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('auth_token', token);
+
+        // Décodage du payload JWT
+        final parts = token.split('.');
+        if (parts.length != 3) throw Exception('Token invalide');
+
+        final payload = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+        debugPrint('[LOGIN] Payload JWT décodé : $payload');
+
+        final payloadMap = jsonDecode(payload);
+
+        _currentUser = User(
+          id: '', // Ajoute l'id si dispo
+          firstName: payloadMap['firstName'] ?? '',
+          lastName: payloadMap['lastName'] ?? '',
+          email: payloadMap['email'] ?? '',
+          phone: payloadMap['phone'] ?? '',
+          cniNumber: '', // Si présent, ajoute le champ
+          createdAt: DateTime.now(),
+          isVerified: true,
+        );
+
+        debugPrint('[LOGIN] Utilisateur connecté : ${_currentUser?.email}');
+        _isAuthenticated = true;
+        notifyListeners();
+
+      } else {
+        String errorMessage = 'Identifiants invalides';
+        try {
+          final Map<String, dynamic> errorData = jsonDecode(response.body);
+          if (errorData.containsKey('message')) {
+            errorMessage = errorData['message'];
+          }
+        } catch (e) {
+          debugPrint('[LOGIN] Erreur lors du décodage de l’erreur JSON : $e');
+        }
+
+        _error = errorMessage;
+        _isAuthenticated = false;
+        notifyListeners();
+      }
+
+    } catch (e, stack) {
+      debugPrint('[LOGIN] Exception : $e');
+      debugPrint('[LOGIN] Stacktrace : $stack');
       _error = 'Erreur de connexion';
+      _isAuthenticated = false;
+      notifyListeners();
     } finally {
       _setLoading(false);
     }
   }
+
 
   Future<void> register({
     required String firstName,
