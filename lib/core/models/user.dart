@@ -5,6 +5,8 @@ class User {
   final String email;
   final String phone;
   final String? cniNumber;
+  final String? cniRectoImage;
+  final String? cniVersoImage;
   final String? profilePicture;
   final DateTime createdAt;
   final bool isVerified;
@@ -16,6 +18,8 @@ class User {
     required this.email,
     required this.phone,
     this.cniNumber,
+    this.cniRectoImage,
+    this.cniVersoImage,
     this.profilePicture,
     required this.createdAt,
     this.isVerified = false,
@@ -31,6 +35,8 @@ class User {
       'email': email,
       'phone': phone,
       'cniNumber': cniNumber,
+      'cniRectoImage': cniRectoImage,
+      'cniVersoImage': cniVersoImage,
       'profilePicture': profilePicture,
       'createdAt': createdAt.toIso8601String(),
       'isVerified': isVerified,
@@ -45,6 +51,8 @@ class User {
       email: json['email'],
       phone: json['phone'],
       cniNumber: json['cniNumber'],
+      cniRectoImage: json['cniRectoImage'],
+      cniVersoImage: json['cniVersoImage'],
       profilePicture: json['profilePicture'],
       createdAt: DateTime.parse(json['createdAt']),
       isVerified: json['isVerified'] ?? false,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PinSetupScreen extends StatefulWidget {
   const PinSetupScreen({super.key});
@@ -290,7 +291,10 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
     await Future.delayed(const Duration(seconds: 1));
 
     if (_pin == _confirmPin) {
-      // PIN confirmé avec succès
+      // Sauvegarde du PIN dans SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user_pin', _pin);
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

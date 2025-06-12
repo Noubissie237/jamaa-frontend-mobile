@@ -18,7 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    // Réinitialise l’erreur à chaque fois qu’on arrive sur la page de login
+    // Réinitialise l'erreur à chaque fois qu'on arrive sur la page de login
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       authProvider.clearError();
@@ -263,24 +263,41 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 24),
 
-                // Authentification biométrique
-                OutlinedButton.icon(
-                      onPressed: () {
-                        // TODO: Implémenter l'authentification biométrique
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Authentification biométrique à venir',
-                            ),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.fingerprint),
-                      label: const Text('Authentification biométrique'),
-                    )
-                    .animate()
-                    .fadeIn(delay: 1100.ms, duration: 600.ms)
-                    .slideY(begin: 0.3, end: 0),
+                // Options de connexion alternatives
+                Column(
+                  children: [
+                    // Authentification biométrique
+                    // OutlinedButton.icon(
+                    //       onPressed: () {
+                    //         // TODO: Implémenter l'authentification biométrique
+                    //         ScaffoldMessenger.of(context).showSnackBar(
+                    //           const SnackBar(
+                    //             content: Text(
+                    //               'Authentification biométrique à venir',
+                    //             ),
+                    //           ),
+                    //         );
+                    //       },
+                    //       icon: const Icon(Icons.fingerprint),
+                    //       label: const Text('Authentification biométrique'),
+                    //     )
+                    //     .animate()
+                    //     .fadeIn(delay: 1100.ms, duration: 600.ms)
+                    //     .slideY(begin: 0.3, end: 0),
+
+                    // const SizedBox(height: 16),
+
+                    // Connexion via code PIN
+                    OutlinedButton.icon(
+                          onPressed: () => context.go('/pin-login'),
+                          icon: const Icon(Icons.pin_outlined),
+                          label: const Text('Connexion via code PIN'),
+                        )
+                        .animate()
+                        .fadeIn(delay: 1200.ms, duration: 600.ms)
+                        .slideY(begin: 0.3, end: 0),
+                  ],
+                ),
 
                 const SizedBox(height: 32),
 
@@ -303,7 +320,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ],
-                ).animate().fadeIn(delay: 1200.ms, duration: 600.ms),
+                ).animate().fadeIn(delay: 1300.ms, duration: 600.ms),
               ],
             ),
           ),

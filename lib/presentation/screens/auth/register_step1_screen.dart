@@ -1,41 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/providers/auth_provider.dart';
 import '../../widgets/custom_text_field.dart';
-import '../../widgets/loading_button.dart';
 
-class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+class RegisterStep1Screen extends StatefulWidget {
+  const RegisterStep1Screen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  State<RegisterStep1Screen> createState() => _RegisterStep1ScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterStep1ScreenState extends State<RegisterStep1Screen> {
   final _formKey = GlobalKey<FormState>();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _cniController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  bool _acceptTerms = false;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      authProvider.clearError();
-    });
-  }
 
   @override
   void dispose() {
@@ -43,7 +29,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _lastNameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
-    _cniController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -55,7 +40,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Inscription'),
+        title: const Text('Inscription - Étape 1/2'),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -68,7 +53,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               children: [
                 // Titre et description
                 Text(
-                  'Créer un compte',
+                  'Informations personnelles',
                   style: theme.textTheme.headlineLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -81,15 +66,44 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 8),
 
                 Text(
-                  'Rejoignez JAMAA et gérez vos finances facilement',
+                  'Commencez par saisir vos informations de base',
                   style: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.colorScheme.onBackground.withOpacity(0.7),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                   textAlign: TextAlign.center,
                 )
                     .animate()
                     .fadeIn(delay: 200.ms, duration: 600.ms)
                     .slideY(begin: -0.3, end: 0),
+
+                const SizedBox(height: 32),
+
+                // Indicateur de progression
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: theme.primaryColor,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Container(
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.outline.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+                    .animate()
+                    .fadeIn(delay: 300.ms, duration: 600.ms),
 
                 const SizedBox(height: 32),
 
@@ -178,24 +192,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 const SizedBox(height: 16),
 
-                // CNI (optionnel)
-                CustomTextField(
-                  controller: _cniController,
-                  label: 'CNI (optionnel)',
-                  prefixIcon: Icons.badge_outlined,
-                  validator: (value) {
-                    if (value != null && value.isNotEmpty && value.length < 8) {
-                      return 'Numéro de CNI invalide';
-                    }
-                    return null;
-                  },
-                )
-                    .animate()
-                    .fadeIn(delay: 800.ms, duration: 600.ms)
-                    .slideX(begin: -0.2, end: 0),
-
-                const SizedBox(height: 16),
-
                 // Mot de passe
                 CustomTextField(
                   controller: _passwordController,
@@ -224,8 +220,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                 )
                     .animate()
-                    .fadeIn(delay: 900.ms, duration: 600.ms)
-                    .slideX(begin: 0.2, end: 0),
+                    .fadeIn(delay: 800.ms, duration: 600.ms)
+                    .slideX(begin: -0.2, end: 0),
 
                 const SizedBox(height: 16),
 
@@ -254,110 +250,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                 )
                     .animate()
-                    .fadeIn(delay: 1000.ms, duration: 600.ms)
-                    .slideX(begin: -0.2, end: 0),
-
-                const SizedBox(height: 24),
-
-                // Acceptation des conditions
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Checkbox(
-                      value: _acceptTerms,
-                      onChanged: (value) {
-                        setState(() {
-                          _acceptTerms = value ?? false;
-                        });
-                      },
-                    ),
-                    Expanded(
-                      child: RichText(
-                        text: TextSpan(
-                          style: theme.textTheme.bodyMedium,
-                          children: [
-                            const TextSpan(text: 'J\'accepte les '),
-                            TextSpan(
-                              text: 'conditions d\'utilisation',
-                              style: TextStyle(
-                                color: theme.primaryColor,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const TextSpan(text: ' et la '),
-                            TextSpan(
-                              text: 'politique de confidentialité',
-                              style: TextStyle(
-                                color: theme.primaryColor,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-                    .animate()
-                    .fadeIn(delay: 1100.ms, duration: 600.ms),
+                    .fadeIn(delay: 900.ms, duration: 600.ms)
+                    .slideX(begin: 0.2, end: 0),
 
                 const SizedBox(height: 32),
 
-                // Bouton d'inscription
-                Consumer<AuthProvider>(
-                  builder: (context, authProvider, child) {
-                    return LoadingButton(
-                      onPressed: _acceptTerms ? () => _register(authProvider) : null,
-                      isLoading: authProvider.isLoading,
-                      child: const Text('S\'inscrire'),
-                    );
-                  },
+                // Bouton continuer
+                ElevatedButton(
+                  onPressed: _continueToStep2,
+                  child: const Text('Continuer'),
                 )
                     .animate()
-                    .fadeIn(delay: 1200.ms, duration: 600.ms)
+                    .fadeIn(delay: 1000.ms, duration: 600.ms)
                     .slideY(begin: 0.3, end: 0),
-
-                const SizedBox(height: 24),
-
-                // Affichage des erreurs
-                Consumer<AuthProvider>(
-                  builder: (context, authProvider, child) {
-                    if (authProvider.error != null) {
-                      return Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.error.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: theme.colorScheme.error.withOpacity(0.3),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.error_outline,
-                              color: theme.colorScheme.error,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                authProvider.error!,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.error,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                          .animate()
-                          .fadeIn(duration: 300.ms)
-                          .shake(duration: 500.ms);
-                    }
-                    return const SizedBox.shrink();
-                  },
-                ),
 
                 const SizedBox(height: 24),
 
@@ -382,7 +287,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ],
                 )
                     .animate()
-                    .fadeIn(delay: 1300.ms, duration: 600.ms),
+                    .fadeIn(delay: 1100.ms, duration: 600.ms),
               ],
             ),
           ),
@@ -391,23 +296,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Future<void> _register(AuthProvider authProvider) async {
+  void _continueToStep2() {
     if (!_formKey.currentState!.validate()) return;
 
-    authProvider.clearError();
-    
-    await authProvider.register(
-      firstName: _firstNameController.text.trim(),
-      lastName: _lastNameController.text.trim(),
-      email: _emailController.text.trim(),
-      phone: _phoneController.text.trim(),
-      password: _passwordController.text,
-      cniNumber: _cniController.text.trim().isEmpty ? null : _cniController.text.trim(),
-    );
+    // Passer les données à la page suivante
+    final userData = {
+      'firstName': _firstNameController.text.trim(),
+      'lastName': _lastNameController.text.trim(),
+      'email': _emailController.text.trim(),
+      'phone': _phoneController.text.trim(),
+      'password': _passwordController.text,
+      
+    };
 
-    if (mounted && authProvider.isAuthenticated) {
-      // Rediriger vers la vérification OTP
-      context.go('/otp-verification', extra: _phoneController.text.trim());
-    }
+    context.go('/register-step2', extra: userData);
   }
 }

@@ -101,6 +101,8 @@ class AuthProvider extends ChangeNotifier {
     required String phone,
     required String password,
     String? cniNumber,
+    String? cniRectoImage,
+    String? cniVersoImage,
   }) async {
     _setLoading(true);
     _error = null;
@@ -115,6 +117,8 @@ class AuthProvider extends ChangeNotifier {
         email: email,
         phone: phone,
         cniNumber: cniNumber,
+        cniRectoImage: cniRectoImage,
+        cniVersoImage: cniVersoImage,
         createdAt: DateTime.now(),
         isVerified: false,
       );
@@ -123,34 +127,6 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       _error = 'Erreur d\'inscription';
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  Future<void> verifyOTP(String otp) async {
-    _setLoading(true);
-    _error = null;
-
-    try {
-      await Future.delayed(const Duration(seconds: 1));
-      
-      if (_currentUser != null) {
-        _currentUser = User(
-          id: _currentUser!.id,
-          firstName: _currentUser!.firstName,
-          lastName: _currentUser!.lastName,
-          email: _currentUser!.email,
-          phone: _currentUser!.phone,
-          cniNumber: _currentUser!.cniNumber,
-          profilePicture: _currentUser!.profilePicture,
-          createdAt: _currentUser!.createdAt,
-          isVerified: true,
-        );
-        notifyListeners();
-      }
-    } catch (e) {
-      _error = 'Code OTP invalide';
     } finally {
       _setLoading(false);
     }

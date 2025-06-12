@@ -1,11 +1,12 @@
 import 'package:go_router/go_router.dart';
+import 'package:jamaa_frontend_mobile/presentation/screens/auth/pin_login_screen.dart';
+import 'package:jamaa_frontend_mobile/presentation/screens/auth/register_step1_screen.dart';
+import 'package:jamaa_frontend_mobile/presentation/screens/auth/register_step2_screen.dart';
 
 import '../../presentation/screens/splash/splash_screen.dart';
 import '../../presentation/screens/onboarding/onboarding_screen.dart';
 import '../../presentation/screens/auth/login_screen.dart';
-import '../../presentation/screens/auth/register_screen.dart';
 import '../../presentation/screens/dashboard/dashboard_screen.dart';
-import '../../presentation/screens/auth/otp_verification_screen.dart';
 import '../../presentation/screens/auth/pin_setup_screen.dart';
 import '../../presentation/screens/transactions/transactions_screen.dart';
 import '../../presentation/screens/transactions/transaction_detail_screen.dart';
@@ -42,6 +43,11 @@ class AppRouter {
 
       // Authentication
       GoRoute(
+        path: '/pin-login',
+        name: 'pin-login',
+        builder: (context, state) => const PinLoginScreen(),
+      ),
+      GoRoute(
         path: '/login',
         name: 'login',
         builder: (context, state) => const LoginScreen(),
@@ -49,16 +55,14 @@ class AppRouter {
       GoRoute(
         path: '/register',
         name: 'register',
-        builder: (context, state) => const RegisterScreen(),
+        builder: (context, state) => const RegisterStep1Screen(),
       ),
       GoRoute(
-        path: '/otp-verification',
-        name: 'otp-verification',
-        builder: (context, state) {
-          final phone = state.extra as String? ?? '';
-          return OTPVerificationScreen(phoneNumber: phone);
-        },
+        path: '/register-step2',
+        name: 'register-step2',
+        builder: (context, state) => RegisterStep2Screen(userData: state.extra as Map<String, dynamic>),
       ),
+
       GoRoute(
         path: '/pin-setup',
         name: 'pin-setup',
