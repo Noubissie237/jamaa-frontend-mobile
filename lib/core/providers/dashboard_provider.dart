@@ -7,6 +7,7 @@ import '../models/bank_account.dart';
 
 class DashboardProvider extends ChangeNotifier {
   double _totalBalance = 0.0;
+  String _accountNumber = '';
   List<BankAccount> _bankAccounts = [];
   bool _isLoading = false;
   String? _error;
@@ -20,6 +21,10 @@ class DashboardProvider extends ChangeNotifier {
     return '${_totalBalance.toStringAsFixed(2)} XAF';
   }
 
+  String get formattedAccountNumber {
+    return _accountNumber;
+  }
+
   Future<void> loadDashboardData({required String userId}) async {
     _setLoading(true);
     _error = null;
@@ -30,7 +35,8 @@ class DashboardProvider extends ChangeNotifier {
       final String query = '''
         query {
           getAccountByUserId(userId: $userId) {
-            balance
+            balance,
+            accountNumber
           }
         }
       ''';
@@ -47,10 +53,12 @@ class DashboardProvider extends ChangeNotifier {
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
         final balanceData = data['data']?['getAccountByUserId'];
+        final accountNumber = balanceData['accountNumber'];
         if (balanceData != null && balanceData['balance'] != null) {
           final balanceRaw = balanceData['balance'];
           if (balanceRaw != null) {
             _totalBalance = double.tryParse(balanceRaw.toString()) ?? 0.0;
+            _accountNumber = accountNumber;
           } else {
             _totalBalance = 0.0;
           }

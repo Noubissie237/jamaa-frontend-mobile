@@ -276,7 +276,7 @@ class _BanksScreenState extends State<BanksScreen> {
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Theme.of(context).dividerColor.withOpacity(0.2),
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -284,7 +284,7 @@ class _BanksScreenState extends State<BanksScreen> {
           Icon(
             Icons.account_balance_outlined,
             size: 64,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           Text(
@@ -297,7 +297,7 @@ class _BanksScreenState extends State<BanksScreen> {
           Text(
             'Ajoutez vos comptes bancaires pour commencer à utiliser JAMAA',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),

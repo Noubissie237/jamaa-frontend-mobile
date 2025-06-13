@@ -148,6 +148,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         return BalanceCard(
               balance: dashboardProvider.formattedTotalBalance,
+              cardNumber: dashboardProvider.formattedAccountNumber,
               isVisible: _balanceVisible,
               onToggleVisibility: () {
                 setState(() {
