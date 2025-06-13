@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:jamaa_frontend_mobile/presentation/widgets/bank_card.dart';
+import 'package:jamaa_frontend_mobile/presentation/widgets/card_carousel.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
@@ -131,37 +133,73 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildBalanceSection() {
-    return Consumer<DashboardProvider>(
-      builder: (context, dashboardProvider, child) {
-        if (dashboardProvider.isLoading) {
-          return Container(
-            width: double.infinity,
-            height: 120,
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Center(child: CircularProgressIndicator()),
-          );
-        }
+Widget _buildBalanceSection() {
+  return Consumer<DashboardProvider>(
+    builder: (context, dashboardProvider, child) {
+      if (dashboardProvider.isLoading) {
+        return Container(
+          width: double.infinity,
+          height: 120,
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: const Center(child: CircularProgressIndicator()),
+        );
+      }
 
-        return BalanceCard(
-              balance: dashboardProvider.formattedTotalBalance,
-              cardNumber: dashboardProvider.formattedAccountNumber,
-              isVisible: _balanceVisible,
-              onToggleVisibility: () {
-                setState(() {
-                  _balanceVisible = !_balanceVisible;
-                });
-              },
-            )
-            .animate()
-            .fadeIn(delay: 200.ms, duration: 600.ms)
-            .slideY(begin: 0.3, end: 0);
-      },
-    );
-  }
+      // Créer la liste des cartes
+      List<Widget> cards = [];
+      
+      // Ajouter la carte principale
+      cards.add(
+        BalanceCard(
+          balance: dashboardProvider.formattedTotalBalance,
+          cardNumber: dashboardProvider.formattedAccountNumber,
+          isVisible: _balanceVisible,
+          onToggleVisibility: () {
+            setState(() {
+              _balanceVisible = !_balanceVisible;
+            });
+          },
+          onRecharge: () {
+            // TODO: Action de recharge
+          },
+        ),
+      );
+      
+      // Ajouter les cartes bancaires
+      for (final account in dashboardProvider.bankAccounts) {
+        cards.add(
+          BankCard(
+            bankAccount: account,
+            isVisible: _balanceVisible,
+            onToggleVisibility: () {
+              setState(() {
+                _balanceVisible = !_balanceVisible;
+              });
+            },
+            onRecharge: () {
+              // TODO: Action de recharge pour ce compte
+            },
+            onTap: () {
+              // TODO: Naviguer vers les détails du compte
+            },
+          ),
+        );
+      }
+
+      return CardCarousel(
+        cards: cards,
+        height: 220,
+        viewportFraction: 0.95,
+      )
+      .animate()
+      .fadeIn(delay: 200.ms, duration: 600.ms)
+      .slideY(begin: 0.3, end: 0);
+    },
+  );
+}
 
   Widget _buildQuickActions() {
     final actions = [

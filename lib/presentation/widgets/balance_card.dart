@@ -27,17 +27,17 @@ class BalanceCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       height: 200,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16), 
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppTheme.primaryColor, // Rouge principal
-            AppTheme.secondaryColor, // Rouge-rose
+            AppTheme.primaryColor, 
+            AppTheme.secondaryColor,
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
             color: AppTheme.errorColor.withValues(alpha: 0.3),
@@ -53,17 +53,20 @@ class BalanceCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                accountName,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
+              Flexible(
+                child: Text(
+                  accountName,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14, 
+                    fontWeight: FontWeight.w500,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               Container(
-                width: 50,
-                height: 50,
+                width: 40, 
+                height: 40, 
                 decoration: BoxDecoration(
                   color: AppTheme.textPrimaryDark.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
@@ -77,9 +80,9 @@ class BalanceCard extends StatelessWidget {
                     'JAMAA',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 10,
+                      fontSize: 8, 
                       fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
+                      letterSpacing: 0.3, 
                     ),
                   ),
                 ),
@@ -87,16 +90,16 @@ class BalanceCard extends StatelessWidget {
             ],
           ),
           
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           
           // Numéro de carte
           Text(
             cardNumber,
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.9),
-              fontSize: 16,
+              fontSize: 14, 
               fontWeight: FontWeight.w400,
-              letterSpacing: 1.2,
+              letterSpacing: 1.0, 
             ),
           ),
           
@@ -120,7 +123,7 @@ class BalanceCard extends StatelessWidget {
                         maxLines: 1,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 28,
+                          fontSize: 24, 
                           fontWeight: FontWeight.bold,
                         ),
                       )
@@ -128,31 +131,33 @@ class BalanceCard extends StatelessWidget {
                           .fadeIn(duration: 300.ms)
                           .slideX(begin: isVisible ? 0.2 : -0.2, end: 0),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2), 
                     if (onToggleVisibility != null)
                       GestureDetector(
                         onTap: onToggleVisibility,
                         child: Icon(
                           isVisible ? Icons.visibility : Icons.visibility_off,
                           color: Colors.white.withValues(alpha: 0.7),
-                          size: 20,
+                          size: 18, 
                         ),
                       ),
                   ],
                 ),
               ),
               
+              const SizedBox(width: 12), 
+              
               // Bouton Recharger
               GestureDetector(
                 onTap: onRecharge,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 10,
+                    horizontal: 16, 
+                    vertical: 8, 
                   ),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(16), 
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.1),
@@ -165,7 +170,7 @@ class BalanceCard extends StatelessWidget {
                     'Recharger',
                     style: TextStyle(
                       color: Color(0xFFE53E3E),
-                      fontSize: 14,
+                      fontSize: 12, 
                       fontWeight: FontWeight.w600,
                     ),
                   ),
