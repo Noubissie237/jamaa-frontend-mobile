@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'package:provider/provider.dart';
+import '../../../core/providers/auth_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -22,12 +25,35 @@ class _SplashScreenState extends State<SplashScreen> {
     final prefs = await SharedPreferences.getInstance();
     final hasSeenOnboarding = prefs.getBool('onboarding_seen') ?? false;
 
-    if (mounted) {
-      if (hasSeenOnboarding) {
-        context.go('/login'); // Ou la route principale si différent
-      } else {
-        context.go('/onboarding');
-      }
+    if (!mounted) return;
+    if (!hasSeenOnboarding) {
+      context.go('/onboarding');
+      return;
+    }
+
+    // Vérification du token JWT
+    final token = prefs.getString('auth_token');
+    bool isValid = false;
+    if (token != null) {
+      try {
+        final parts = token.split('.');
+        if (parts.length == 3) {
+          final payload = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+          final payloadMap = jsonDecode(payload);
+          if (payloadMap != null && payloadMap.containsKey('exp')) {
+            final exp = payloadMap['exp'];
+            final expiry = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
+            isValid = expiry.isAfter(DateTime.now());
+          }
+        }
+      } catch (_) {}
+    }
+    if (isValid) {
+      // Charger le current user depuis le provider avant de naviguer
+      await context.read<AuthProvider>().loadCurrentUserFromPrefs();
+      context.go('/main');
+    } else {
+      context.go('/login');
     }
   }
 
