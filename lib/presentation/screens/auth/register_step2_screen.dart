@@ -438,8 +438,8 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen> {
       phone: widget.userData['phone'],
       password: widget.userData['password'],
       cniNumber: _cniController.text.trim(),
-      cniRectoImage: _cniRectoImage?.path,
-      cniVersoImage: _cniVersoImage?.path, 
+      cniRectoFile: _cniRectoImage,
+      cniVersoFile: _cniVersoImage, 
     );
 
     if (mounted && authProvider.isAuthenticated) {

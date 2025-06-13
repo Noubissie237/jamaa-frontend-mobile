@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+import '../../../core/providers/auth_provider.dart';
 
 class PinLoginScreen extends StatefulWidget {
   const PinLoginScreen({super.key});
@@ -50,9 +52,19 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
     }
   }
 
-  void _validatePin() {
+  Future<void> _validatePin() async {
     if (_enteredPin == _savedPin) {
-      context.go('/main');
+      setState(() {
+        _isLoading = true;
+      });
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      await authProvider.loadCurrentUserFromPrefs();
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        context.go('/main');
+      }
     } else {
       setState(() {
         _error = 'Code PIN incorrect';
