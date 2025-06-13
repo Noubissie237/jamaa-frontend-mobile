@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:jamaa_frontend_mobile/core/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
@@ -18,7 +19,7 @@ class _BanksScreenState extends State<BanksScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DashboardProvider>().loadDashboardData();
+      context.read<DashboardProvider>().loadDashboardData(userId: context.read<AuthProvider>().currentUser!.id.toString());
     });
   }
 
@@ -71,7 +72,7 @@ class _BanksScreenState extends State<BanksScreen> {
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () {
-                      dashboardProvider.loadDashboardData();
+                      dashboardProvider.loadDashboardData(userId: context.read<AuthProvider>().currentUser!.id.toString());
                     },
                     child: const Text('Réessayer'),
                   ),
@@ -81,7 +82,7 @@ class _BanksScreenState extends State<BanksScreen> {
           }
 
           return RefreshIndicator(
-            onRefresh: () => dashboardProvider.refreshBalance(),
+            onRefresh: () => dashboardProvider.refreshBalance(userId: context.read<AuthProvider>().currentUser!.id.toString()),
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16),

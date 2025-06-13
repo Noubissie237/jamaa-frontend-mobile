@@ -71,7 +71,7 @@ class AuthProvider extends ChangeNotifier {
 
     // Si on arrive ici, payloadMap est valide
     _currentUser = User(
-      id: '', // Ajoute l'id si dispo
+      id: payloadMap != null && payloadMap['id'] != null ? payloadMap['id'] : '',
       firstName: payloadMap != null && payloadMap['firstName'] != null ? payloadMap['firstName'] : '',
       lastName: payloadMap != null && payloadMap['lastName'] != null ? payloadMap['lastName'] : '',
       email: payloadMap != null && payloadMap['email'] != null ? payloadMap['email'] : '',
@@ -133,7 +133,7 @@ class AuthProvider extends ChangeNotifier {
         final payloadMap = jsonDecode(payload);
 
         _currentUser = User(
-          id: '', // Ajoute l'id si dispo
+          id: payloadMap['id'] ?? '', 
           firstName: payloadMap['firstName'] ?? '',
           lastName: payloadMap['lastName'] ?? '',
           email: payloadMap['email'] ?? '',

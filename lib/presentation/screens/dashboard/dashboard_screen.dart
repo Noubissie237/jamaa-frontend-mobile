@@ -24,7 +24,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DashboardProvider>().loadDashboardData();
+      context.read<DashboardProvider>().loadDashboardData(userId: context.read<AuthProvider>().currentUser!.id.toString());
       context.read<TransactionProvider>().loadTransactions();
     });
   }
@@ -75,9 +75,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildHeader() {
+    String fullName = 'Utilisateur';
     return Consumer<AuthProvider>(
       builder: (context, authProvider, child) {
         final user = authProvider.currentUser;
+        fullName = '${user?.firstName.toUpperCase()} ${user?.lastName.toUpperCase()}';
         return Row(
           children: [
             Expanded(
@@ -89,14 +91,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: Theme.of(
                         context,
-                      ).colorScheme.onBackground.withOpacity(0.7),
+                      ).colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    user?.firstName ?? 'Utilisateur',
+                    fullName,
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -226,7 +229,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: Theme.of(context).dividerColor.withOpacity(0.1),
+                  color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
                 ),
               ),
               child: Column(
@@ -235,7 +238,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     width: 50,
                     height: 50,
                     decoration: BoxDecoration(
-                      color: action.color.withOpacity(0.1),
+                      color: action.color.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(action.icon, color: action.color, size: 24),
@@ -289,7 +292,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       color: Theme.of(context).cardColor,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: Theme.of(context).dividerColor.withOpacity(0.2),
+                        color: Theme.of(context).dividerColor.withValues(alpha: 0.2),
                         style: BorderStyle.solid,
                       ),
                     ),
@@ -300,7 +303,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           size: 48,
                           color: Theme.of(
                             context,
-                          ).colorScheme.onSurface.withOpacity(0.5),
+                          ).colorScheme.onSurface.withValues(alpha: 0.5),
                         ),
                         const SizedBox(height: 12),
                         Text(
@@ -316,7 +319,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ).textTheme.bodyMedium?.copyWith(
                             color: Theme.of(
                               context,
-                            ).colorScheme.onSurface.withOpacity(0.7),
+                            ).colorScheme.onSurface.withValues(alpha: 0.7),
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -385,7 +388,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       color: Theme.of(context).cardColor,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: Theme.of(context).dividerColor.withOpacity(0.2),
+                        color: Theme.of(context).dividerColor.withValues(alpha: 0.2),
                       ),
                     ),
                     child: Column(
@@ -395,7 +398,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           size: 48,
                           color: Theme.of(
                             context,
-                          ).colorScheme.onSurface.withOpacity(0.5),
+                          ).colorScheme.onSurface.withValues(alpha: 0.5),
                         ),
                         const SizedBox(height: 12),
                         Text(
@@ -411,7 +414,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ).textTheme.bodyMedium?.copyWith(
                             color: Theme.of(
                               context,
-                            ).colorScheme.onSurface.withOpacity(0.7),
+                            ).colorScheme.onSurface.withValues(alpha: 0.7),
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -444,7 +447,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _refreshData() async {
     await Future.wait([
-      context.read<DashboardProvider>().refreshBalance(),
+      context.read<DashboardProvider>().refreshBalance(userId: context.read<AuthProvider>().currentUser!.id.toString()),
       context.read<TransactionProvider>().loadTransactions(),
     ]);
   }

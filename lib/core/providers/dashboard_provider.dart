@@ -1,4 +1,8 @@
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'package:jamaa_frontend_mobile/core/constants/api_constants.dart';
+import 'dart:convert';
+
 import '../models/bank_account.dart';
 
 class DashboardProvider extends ChangeNotifier {
@@ -13,17 +17,53 @@ class DashboardProvider extends ChangeNotifier {
   String? get error => _error;
 
   String get formattedTotalBalance {
-    return '${_totalBalance.toStringAsFixed(0)} XAF';
+    return '${_totalBalance.toStringAsFixed(2)} XAF';
   }
 
-  Future<void> loadDashboardData() async {
+  Future<void> loadDashboardData({required String userId}) async {
     _setLoading(true);
     _error = null;
 
     try {
-      await Future.delayed(const Duration(seconds: 1));
-      
-      // Mock bank accounts
+      // Requête GraphQL pour récupérer le solde
+      const String endpoint = ApiConstants.accountServiceUrl;
+      final String query = '''
+        query {
+          getAccountByUserId(userId: $userId) {
+            balance
+          }
+        }
+      ''';
+
+      final response = await http.post(
+        Uri.parse(endpoint),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'query': query}),
+      );
+
+      debugPrint('[DASHBOARD] Statut : ${response.statusCode}');
+      debugPrint('[DASHBOARD] Body : ${response.body}');
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        final balanceData = data['data']?['getAccountByUserId'];
+        if (balanceData != null && balanceData['balance'] != null) {
+          final balanceRaw = balanceData['balance'];
+          if (balanceRaw != null) {
+            _totalBalance = double.tryParse(balanceRaw.toString()) ?? 0.0;
+          } else {
+            _totalBalance = 0.0;
+          }
+        } else {
+          _error = 'Solde non trouvé';
+          _totalBalance = 0.0;
+        }
+      } else {
+        _error = 'Erreur serveur';
+        _totalBalance = 0.0;
+      }
+
+      // Mock bank accounts (temporaire)
       _bankAccounts = [
         BankAccount(
           id: '1',
@@ -54,17 +94,18 @@ class DashboardProvider extends ChangeNotifier {
         ),
       ];
 
-      _totalBalance = _bankAccounts.fold(0.0, (sum, account) => sum + account.balance);
       notifyListeners();
     } catch (e) {
       _error = 'Erreur de chargement des données';
+      _totalBalance = 0.0;
+      notifyListeners();
     } finally {
       _setLoading(false);
     }
   }
 
-  Future<void> refreshBalance() async {
-    await loadDashboardData();
+  Future<void> refreshBalance({required String userId}) async {
+    await loadDashboardData(userId: userId);
   }
 
   void _setLoading(bool loading) {

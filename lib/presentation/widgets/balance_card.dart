@@ -24,7 +24,7 @@ class BalanceCard extends StatelessWidget {
         gradient: LinearGradient(
           colors: [
             theme.primaryColor,
-            theme.primaryColor.withOpacity(0.8),
+            theme.primaryColor.withValues(alpha: 0.8),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -32,7 +32,7 @@ class BalanceCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: theme.primaryColor.withOpacity(0.3),
+            color: theme.primaryColor.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -47,14 +47,14 @@ class BalanceCard extends StatelessWidget {
               Text(
                 'Solde Total',
                 style: theme.textTheme.bodyLarge?.copyWith(
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                 ),
               ),
               IconButton(
                 onPressed: onToggleVisibility,
                 icon: Icon(
                   isVisible ? Icons.visibility : Icons.visibility_off,
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                 ),
               ),
             ],
