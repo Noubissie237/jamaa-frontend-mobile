@@ -26,6 +26,11 @@ class BankAccount {
     return '**** **** ${accountNumber.substring(accountNumber.length - 4)}';
   }
 
+    String get formattedBalance {
+    return '${balance.toStringAsFixed(2)} $currency';
+  }
+
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,

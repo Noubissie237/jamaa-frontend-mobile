@@ -137,7 +137,7 @@ class BankCard extends StatelessWidget {
                         alignment: Alignment.centerLeft,
                         child: Text(
                           isVisible 
-                              ? '${bankAccount.balance.toStringAsFixed(0)} ${bankAccount.currency}'
+                              ? '${bankAccount.balance.toStringAsFixed(2)} ${bankAccount.currency}'
                               : '••••••••',
                           maxLines: 1,
                           style: const TextStyle(

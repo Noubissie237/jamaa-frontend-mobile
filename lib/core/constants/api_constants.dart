@@ -12,4 +12,5 @@ class ApiConstants {
   static const String register = '$baseUrl/SERVICE-USERS/graphql';
   static const String uploadCni = '$baseUrl/SERVICE-USERS/upload/cni';
   static const String accountServiceUrl = '$baseUrl/SERVICE-ACCOUNT/graphql';
+  static const String cardServiceUrl = '$baseUrl/SERVICE-CARD/graphql';
 }

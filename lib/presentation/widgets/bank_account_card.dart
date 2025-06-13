@@ -91,7 +91,7 @@ class BankAccountCard extends StatelessWidget {
                         fit: BoxFit.scaleDown,
                         alignment: Alignment.centerRight,
                         child: Text(
-                          '${bankAccount.balance.toStringAsFixed(0)} ${bankAccount.currency}',
+                          '${bankAccount.balance.toStringAsFixed(2)} ${bankAccount.currency}',
                           maxLines: 1,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
