@@ -44,6 +44,12 @@ class DashboardProvider extends ChangeNotifier {
     return '${_totalBalance.toStringAsFixed(2)} XAF';
   }
 
+  String get formattedAllTotalBalance {
+    double total = _bankAccounts.fold<double>(0.0, (sum, account) => sum + account.balance);
+    total += _totalBalance;
+    return '${total.toStringAsFixed(2)} XAF';
+  }
+
   String get formattedAccountNumber {
     return _accountNumber.isNotEmpty 
         ? _accountNumber

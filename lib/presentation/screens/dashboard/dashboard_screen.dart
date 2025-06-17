@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:jamaa_frontend_mobile/presentation/widgets/bank_card.dart';
-import 'package:jamaa_frontend_mobile/presentation/widgets/build_bank_accounts_section.dart';
+import 'package:jamaa_frontend_mobile/presentation/widgets/build_available_banks_section.dart';
 import 'package:jamaa_frontend_mobile/presentation/widgets/build_header.dart';
 import 'package:jamaa_frontend_mobile/presentation/widgets/build_quick_actions.dart';
 import 'package:jamaa_frontend_mobile/presentation/widgets/build_recent_transaction_section.dart';
@@ -164,7 +164,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ];
   }
 
-  // Supprimé _buildHorizontalSwipeIndicator() car remplacé par HorizontalGestureIndicator
 
   @override
   void initState() {
@@ -213,8 +212,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                 const SizedBox(height: 24),
 
-                // Comptes bancaires
-                buildBankAccountsSection(context),
+                // Banques disponibles
+                buildAvailableBanksSection(context),
 
                 const SizedBox(height: 24),
 
