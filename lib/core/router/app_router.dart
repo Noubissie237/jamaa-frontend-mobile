@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:jamaa_frontend_mobile/core/models/bank.dart';
 import 'package:jamaa_frontend_mobile/presentation/screens/auth/pin_login_screen.dart';
 import 'package:jamaa_frontend_mobile/presentation/screens/auth/register_step1_screen.dart';
 import 'package:jamaa_frontend_mobile/presentation/screens/auth/register_step2_screen.dart';
@@ -24,6 +25,7 @@ import '../../presentation/screens/profile/edit_profile_screen.dart';
 import '../../presentation/screens/profile/security_settings_screen.dart';
 import '../../presentation/screens/notifications/notifications_screen.dart';
 import '../../presentation/screens/main/main_screen.dart';
+import '../../presentation/screens/banks/bank_detail_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -157,6 +159,13 @@ class AppRouter {
                 path: 'add',
                 name: 'add-bank',
                 builder: (context, state) => const AddBankScreen(),
+              ),
+              GoRoute(
+                path: 'details',
+                name: 'bank-details',
+                builder: (context, state) => BankDetailsScreen(
+                  bank: state.extra as Bank,
+                ),
               ),
             ],
           ),

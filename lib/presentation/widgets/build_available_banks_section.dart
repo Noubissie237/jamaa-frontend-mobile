@@ -243,7 +243,7 @@ class _AvailableBanksSectionState extends State<AvailableBanksSection> {
         borderRadius: BorderRadius.circular(12),
       ),
       child: InkWell(
-        onTap: () => context.go('/main/banks/add', extra: bank.name),
+        onTap: () => context.go('/main/banks/details', extra: bank),
         borderRadius: BorderRadius.circular(12),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
