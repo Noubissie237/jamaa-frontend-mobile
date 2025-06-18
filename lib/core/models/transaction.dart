@@ -14,8 +14,8 @@ enum TransactionStatus {
 class Transaction {
   final String transactionId;
   final double amount;
-  final int idAccountSender;
-  final int idAccountReceiver;
+  final String idAccountSender;
+  final String idAccountReceiver;
   final TransactionType transactionType;
   final TransactionStatus status;
   final DateTime dateEvent;
@@ -30,6 +30,8 @@ class Transaction {
   final String? bankName;
   final String? reference;
   final Map<String, dynamic>? metadata;
+  final String? senderAccountNumber;
+  final String? receiverAccountNumber;
 
   Transaction({
     required this.transactionId,
@@ -48,6 +50,8 @@ class Transaction {
     this.bankName,
     this.reference,
     this.metadata,
+    this.senderAccountNumber,
+    this.receiverAccountNumber,
   });
 
   String get formattedAmount {
@@ -158,8 +162,8 @@ class Transaction {
     return Transaction(
       transactionId: json['transactionId'],
       amount: double.parse(json['amount'].toString()),
-      idAccountSender: int.parse(json['idAccountSender'].toString()),
-      idAccountReceiver: int.parse(json['idAccountReceiver'].toString()),
+      idAccountSender: json['idAccountSender'].toString(),
+      idAccountReceiver: json['idAccountReceiver'].toString(),
       transactionType: _transactionTypeFromString(json['transactionType']),
       status: _statusFromString(json['status']),
       dateEvent: DateTime.parse(json['dateEvent']),
@@ -193,8 +197,8 @@ class Transaction {
   Transaction copyWith({
     String? transactionId,
     double? amount,
-    int? idAccountSender,
-    int? idAccountReceiver,
+    String? idAccountSender,
+    String? idAccountReceiver,
     TransactionType? transactionType,
     TransactionStatus? status,
     DateTime? dateEvent,
@@ -207,6 +211,8 @@ class Transaction {
     String? bankName,
     String? reference,
     Map<String, dynamic>? metadata,
+    String? senderAccountNumber,
+    String? receiverAccountNumber,
   }) {
     return Transaction(
       transactionId: transactionId ?? this.transactionId,
@@ -225,6 +231,8 @@ class Transaction {
       bankName: bankName ?? this.bankName,
       reference: reference ?? this.reference,
       metadata: metadata ?? this.metadata,
+      senderAccountNumber: senderAccountNumber ?? this.senderAccountNumber,
+      receiverAccountNumber: receiverAccountNumber ?? this.receiverAccountNumber,
     );
   }
 

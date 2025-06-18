@@ -90,102 +90,175 @@ class TransactionDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusCard(Transaction transaction, ThemeData theme) {
-    final isCredit = transaction.amount > 0;
-    final statusColor = _getStatusColor(transaction.status);
-    
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            // Icône de transaction
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: _getTransactionColor(transaction.type).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(40),
-              ),
-              child: Icon(
-                _getTransactionIcon(transaction.type),
-                size: 40,
-                color: _getTransactionColor(transaction.type),
-              ),
-            )
-                .animate()
-                .scale(duration: 600.ms, curve: Curves.elasticOut)
-                .then(delay: 200.ms)
-                .shimmer(duration: 1000.ms),
-            
-            const SizedBox(height: 16),
-            
-            // Montant
-            Text(
-              '${isCredit ? '+' : ''}${transaction.formattedAmount}',
-              style: theme.textTheme.displaySmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: isCredit ? Colors.green : Colors.red,
-              ),
-            )
-                .animate()
-                .fadeIn(delay: 300.ms, duration: 600.ms)
-                .slideY(begin: 0.3, end: 0),
-            
-            const SizedBox(height: 8),
-            
-            // Titre
-            Text(
-              transaction.title ?? 'Transaction ${transaction.typeLabel}',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            )
-                .animate()
-                .fadeIn(delay: 400.ms, duration: 600.ms)
-                .slideY(begin: 0.3, end: 0),
-            
-            const SizedBox(height: 16),
-            
-            // Statut
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: statusColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: statusColor.withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: statusColor,
-                      shape: BoxShape.circle,
+Widget _buildStatusCard(Transaction transaction, ThemeData theme) {
+  final isCredit = transaction.amount > 0;
+  final statusColor = _getStatusColor(transaction.status);
+  
+  return Card(
+    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    elevation: 4,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(16),
+    ),
+    child: Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Section principale avec icône et montant
+          Row(
+            children: [
+              // Icône de transaction
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: _getTransactionColor(transaction.type).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(50),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _getTransactionColor(transaction.type).withValues(alpha: 0.2),
+                      blurRadius: 12,
+                      spreadRadius: 2,
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    transaction.statusLabel,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: statusColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  ],
+                ),
+                child: Icon(
+                  _getTransactionIcon(transaction.type),
+                  size: 50,
+                  color: _getTransactionColor(transaction.type),
+                ),
+              )
+                  .animate()
+                  .scale(duration: 600.ms, curve: Curves.elasticOut)
+                  .then(delay: 200.ms)
+                  .shimmer(duration: 1000.ms),
+              
+              const SizedBox(width: 32),
+              
+              // Montant et titre
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Montant
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        '${isCredit ? '+' : ''}${transaction.formattedAmount}',
+                        style: theme.textTheme.displayMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: isCredit ? Colors.green : Colors.red,
+                          fontSize: 42,
+                        ),
+                      ),
+                    )
+                        .animate()
+                        .fadeIn(delay: 300.ms, duration: 600.ms)
+                        .slideX(begin: 0.3, end: 0),
+                    
+                    const SizedBox(height: 12),
+                    
+                    // Titre
+                    Text(
+                      transaction.title ?? 'Transaction ${transaction.typeLabel}',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 20,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    )
+                        .animate()
+                        .fadeIn(delay: 400.ms, duration: 600.ms)
+                        .slideX(begin: 0.3, end: 0),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 32),
+          
+          // Ligne de séparation
+          Container(
+            height: 1,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.transparent,
+                  theme.dividerColor.withValues(alpha: 0.3),
+                  Colors.transparent,
                 ],
               ),
-            )
-                .animate()
-                .fadeIn(delay: 500.ms, duration: 600.ms)
-                .slideY(begin: 0.3, end: 0),
-          ],
-        ),
+            ),
+          ),
+          
+          const SizedBox(height: 24),
+          
+          // Section statut étendue
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            decoration: BoxDecoration(
+              color: statusColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: statusColor.withValues(alpha: 0.3),
+                width: 1.5,
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Indicateur de statut animé
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: statusColor,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: statusColor.withValues(alpha: 0.4),
+                        blurRadius: 8,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                )
+                    .animate(onPlay: (controller) => controller.repeat())
+                    .shimmer(duration: 2000.ms),
+                
+                const SizedBox(width: 16),
+                
+                // Texte du statut
+                Expanded(
+                  child: Text(
+                    transaction.statusLabel,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: statusColor,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 18,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+          )
+              .animate()
+              .fadeIn(delay: 500.ms, duration: 600.ms)
+              .slideY(begin: 0.3, end: 0)
+              .then(delay: 1000.ms)
+              .shimmer(duration: 1500.ms, color: statusColor.withValues(alpha: 0.1)),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildInfoSection(Transaction transaction, ThemeData theme) {
     return Card(
@@ -290,15 +363,15 @@ class TransactionDetailScreen extends StatelessWidget {
             
             _buildInfoRow(
               'Compte expéditeur',
-              transaction.idAccountSender.toString(),
+              transaction.senderAccountNumber ?? transaction.idAccountSender,
               theme,
             ),
-            
+
             _buildInfoRow(
               'Compte destinataire',
-              transaction.idAccountReceiver.toString(),
+              transaction.receiverAccountNumber ?? transaction.idAccountReceiver,
               theme,
-            ),
+          ),
             
             if (transaction.metadata != null && transaction.metadata!.isNotEmpty)
               ...transaction.metadata!.entries.map(

@@ -31,6 +31,9 @@ class TransactionProvider extends ChangeNotifier {
   List<Transaction> _transactions = [];
   bool _isLoading = false;
   TransactionError? _error;
+  
+  // Cache pour les numéros de compte (String keys maintenant)
+  final Map<String, String> _accountNumbersCache = {};
 
   TransactionProvider();
 
@@ -46,49 +49,83 @@ class TransactionProvider extends ChangeNotifier {
   bool get hasError => _error != null;
 
   // Méthode principale pour charger les transactions
-Future<void> loadTransactions(int userId) async {
-  _setLoading(true);
-  _clearError();
+  Future<void> loadTransactions(int userId) async {
+    _setLoading(true);
+    _clearError();
 
-  try {
-    final result = await _fetchTransactionsByUserId(userId);
+    try {
+      final result = await _fetchTransactionsByUserId(userId);
 
-    if (result.isSuccess && result.data != null) {
-      _transactions = result.data!
-          .map((transactionData) => Transaction.fromGraphQL(transactionData))
-          .where((transaction) {
-            final isSender = transaction.idAccountSender == userId;
-            final isSuccess = transaction.status == TransactionStatus.success;
+      if (result.isSuccess && result.data != null) {
+        // D'abord créer les transactions de base
+        final baseTransactions = result.data!
+            .map((transactionData) => Transaction.fromGraphQL(transactionData))
+            .where((transaction) {
+              final isSender = transaction.idAccountSender == userId.toString();
+              final isSuccess = transaction.status == TransactionStatus.success;
 
-            // Si ce n'est pas l'expéditeur (donc reçu) et que ce n'est pas réussi, on exclut
-            if (!isSender && !isSuccess) return false;
+              // Si ce n'est pas l'expéditeur (donc reçu) et que ce n'est pas réussi, on exclut
+              if (!isSender && !isSuccess) return false;
 
-            // On garde tout le reste
-            return true;
-          })
-          .map((transaction) => _enrichTransactionForDisplay(transaction, userId))
-          .toList();
+              // On garde tout le reste
+              return true;
+            })
+            .toList();
 
-      _transactions.sort((a, b) => b.dateEvent.compareTo(a.dateEvent));
-      debugPrint('[TRANSACTIONS] ${_transactions.length} transactions chargées');
-    } else {
-      _setError(result.error ?? TransactionError(
-        message: 'Erreur inconnue lors du chargement',
-        type: 'UNKNOWN_ERROR',
+        // Récupérer tous les numéros de compte uniques
+        final accountIds = <String>{};
+        for (final transaction in baseTransactions) {
+          accountIds.add(transaction.idAccountSender);
+          accountIds.add(transaction.idAccountReceiver);
+        }
+
+        // Charger les numéros de compte
+        await _loadAccountNumbers(accountIds);
+
+        // Enrichir les transactions avec les numéros de compte
+        _transactions = baseTransactions
+            .map((transaction) => _enrichTransactionForDisplay(transaction, userId.toString()))
+            .toList();
+
+        _transactions.sort((a, b) => b.dateEvent.compareTo(a.dateEvent));
+        debugPrint('[TRANSACTIONS] ${_transactions.length} transactions chargées');
+      } else {
+        _setError(result.error ?? TransactionError(
+          message: 'Erreur inconnue lors du chargement',
+          type: 'UNKNOWN_ERROR',
+        ));
+      }
+
+    } catch (e) {
+      debugPrint('[TRANSACTIONS] Erreur inattendue: $e');
+      _setError(TransactionError(
+        message: 'Erreur inattendue',
+        details: e.toString(),
+        type: 'UNEXPECTED_ERROR',
       ));
+    } finally {
+      _setLoading(false);
     }
-
-  } catch (e) {
-    debugPrint('[TRANSACTIONS] Erreur inattendue: $e');
-    _setError(TransactionError(
-      message: 'Erreur inattendue',
-      details: e.toString(),
-      type: 'UNEXPECTED_ERROR',
-    ));
-  } finally {
-    _setLoading(false);
   }
-}
+
+  // Charger plusieurs numéros de compte
+  Future<void> _loadAccountNumbers(Set<String> accountIds) async {
+    for (final accountId in accountIds) {
+      if (!_accountNumbersCache.containsKey(accountId)) {
+        try {
+          final result = await _fetchAccountById(accountId);
+          if (result.isSuccess && result.data != null) {
+            _accountNumbersCache[accountId] = result.data!['accountNumber'] ?? 'N/A';
+          } else {
+            _accountNumbersCache[accountId] = 'Compte-$accountId';
+          }
+        } catch (e) {
+          debugPrint('[ACCOUNTS] Erreur lors de la récupération du compte $accountId: $e');
+          _accountNumbersCache[accountId] = 'Compte-$accountId';
+        }
+      }
+    }
+  }
 
   // Récupération des transactions via GraphQL
   Future<ApiResult<List<Map<String, dynamic>>>> _fetchTransactionsByUserId(int userId) async {
@@ -131,6 +168,45 @@ Future<void> loadTransactions(int userId) async {
     }
   }
 
+  // Récupération d'un compte par ID
+  Future<ApiResult<Map<String, dynamic>>> _fetchAccountById(String accountId) async {
+    try {
+      const String endpoint = ApiConstants.accountServiceUrl;
+      final String query = '''
+        query {
+          getAccount(id: $accountId) {
+            id,
+            accountNumber
+          }
+        }
+      ''';
+
+      final response = await _makeGraphQLRequest(endpoint, query);
+      
+      if (!response.isSuccess) {
+        return ApiResult.failure(response.error);
+      }
+
+      final accountData = response.data?['data']?['getAccount'];
+      if (accountData == null) {
+        return ApiResult.failure(TransactionError(
+          message: 'Compte introuvable',
+          type: 'ACCOUNT_NOT_FOUND',
+        ));
+      }
+
+      return ApiResult.success(Map<String, dynamic>.from(accountData));
+
+    } catch (e) {
+      debugPrint('[ACCOUNTS] Erreur lors de la récupération du compte $accountId: $e');
+      return ApiResult.failure(TransactionError(
+        message: 'Erreur lors de la récupération du compte',
+        details: e.toString(),
+        type: 'FETCH_ERROR',
+      ));
+    }
+  }
+
   // Méthode générique pour les requêtes GraphQL
   Future<ApiResult<Map<String, dynamic>>> _makeGraphQLRequest(
     String endpoint, 
@@ -146,7 +222,7 @@ Future<void> loadTransactions(int userId) async {
         body: jsonEncode({'query': query}),
       );
 
-      debugPrint('[TRANSACTIONS] ${endpoint} - Statut: ${response.statusCode}');
+      debugPrint('[TRANSACTIONS] $endpoint - Statut: ${response.statusCode}');
       
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -176,24 +252,28 @@ Future<void> loadTransactions(int userId) async {
       ));
     }
   }
-  
+
   // Enrichir la transaction avec des données d'affichage
-  Transaction _enrichTransactionForDisplay(Transaction transaction, int currentUserId) {
+  Transaction _enrichTransactionForDisplay(Transaction transaction, String currentUserId) {
     String title;
     String description;
     double displayAmount = transaction.amount;
-
+    
     bool isSender = transaction.idAccountSender == currentUserId;
+    
+    // Récupérer les numéros de compte depuis le cache
+    String senderAccountNumber = _accountNumbersCache[transaction.idAccountSender] ?? 'Compte-${transaction.idAccountSender}';
+    String receiverAccountNumber = _accountNumbersCache[transaction.idAccountReceiver] ?? 'Compte-${transaction.idAccountReceiver}';
     
     switch (transaction.transactionType) {
       case TransactionType.transfert:
         if (isSender) {
           title = 'Transfert envoyé';
-          description = 'Vers compte ${transaction.idAccountReceiver}';
+          description = 'Vers $receiverAccountNumber';
           displayAmount = -transaction.amount;
         } else {
           title = 'Transfert reçu';
-          description = 'De compte ${transaction.idAccountSender}';
+          description = 'De $senderAccountNumber';
           displayAmount = transaction.amount;
         }
         break;
@@ -215,11 +295,11 @@ Future<void> loadTransactions(int userId) async {
       case TransactionType.virement:
         if (isSender) {
           title = 'Virement envoyé';
-          description = 'Vers compte ${transaction.idAccountReceiver}';
+          description = 'Vers $receiverAccountNumber';
           displayAmount = -transaction.amount;
         } else {
           title = 'Virement reçu';
-          description = 'De compte ${transaction.idAccountSender}';
+          description = 'De $senderAccountNumber';
           displayAmount = transaction.amount;
         }
         break;
@@ -230,6 +310,8 @@ Future<void> loadTransactions(int userId) async {
       description: description,
       amount: displayAmount,
       reference: 'TXN-${transaction.transactionId.substring(0, 8).toUpperCase()}',
+      senderAccountNumber: senderAccountNumber,
+      receiverAccountNumber: receiverAccountNumber,
     );
   }
 
@@ -257,6 +339,7 @@ Future<void> loadTransactions(int userId) async {
   void clearData() {
     _transactions = [];
     _error = null;
+    _accountNumbersCache.clear();
     notifyListeners();
   }
 
@@ -265,9 +348,4 @@ Future<void> loadTransactions(int userId) async {
     _clearError();
     notifyListeners();
   }
-
-  String generateTransactionKey(Transaction tx) {
-    return '${tx.dateEvent.millisecondsSinceEpoch}_${tx.amount}_${tx.transactionType.name}_${tx.idAccountSender}_${tx.idAccountReceiver}';
-  }
-
 }
