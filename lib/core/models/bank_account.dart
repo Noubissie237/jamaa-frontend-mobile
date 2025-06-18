@@ -8,6 +8,7 @@ class BankAccount {
   final String bankLogo;
   final bool isActive;
   final DateTime linkedAt;
+  final String bankId;
 
   BankAccount({
     required this.id,
@@ -19,6 +20,7 @@ class BankAccount {
     required this.bankLogo,
     this.isActive = true,
     required this.linkedAt,
+    required this.bankId,
   });
 
   String get maskedAccountNumber {
@@ -42,6 +44,7 @@ class BankAccount {
       'bankLogo': bankLogo,
       'isActive': isActive,
       'linkedAt': linkedAt.toIso8601String(),
+      'bankId': bankId,
     };
   }
 
@@ -56,6 +59,7 @@ class BankAccount {
       bankLogo: json['bankLogo'],
       isActive: json['isActive'] ?? true,
       linkedAt: DateTime.parse(json['linkedAt']),
+      bankId: json['bankId'],
     );
   }
 }

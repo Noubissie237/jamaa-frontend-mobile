@@ -148,6 +148,7 @@ class DashboardProvider extends ChangeNotifier {
             id,
             bankName,
             cardNumber,
+            bankId,
             currentBalance,
             createdAt
           }
@@ -174,6 +175,7 @@ class DashboardProvider extends ChangeNotifier {
           balance: _parseBalance(account['currentBalance']),
           bankLogo: _getBankLogo(account['bankName']?.toString()),
           linkedAt: _parseDate(account['createdAt']),
+          bankId: account['bankId']?.toString() ?? '',
         );
       }).toList();
 

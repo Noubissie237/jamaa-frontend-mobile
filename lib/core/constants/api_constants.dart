@@ -1,5 +1,5 @@
 class ApiConstants {
-  static const String baseIp = '192.168.1.185';
+  static const String baseIp = '10.163.131.2';
   static const String basePort = '8079';
 
   static const String baseUrl = 'http://$baseIp:$basePort';
