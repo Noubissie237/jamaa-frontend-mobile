@@ -170,7 +170,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<DashboardProvider>().loadDashboardData(userId: context.read<AuthProvider>().currentUser!.id.toString());
-      context.read<TransactionProvider>().loadTransactions();
+      context.read<TransactionProvider>().loadTransactions(context.read<AuthProvider>().currentUser!.id);
       
       // Vérifier le tutoriel après le chargement des données
       Future.delayed(const Duration(milliseconds: 500), () {
@@ -298,7 +298,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _refreshData() async {
     await Future.wait([
       context.read<DashboardProvider>().refreshBalance(userId: context.read<AuthProvider>().currentUser!.id.toString()),
-      context.read<TransactionProvider>().loadTransactions(),
+      context.read<TransactionProvider>().loadTransactions(context.read<AuthProvider>().currentUser!.id),
     ]);
   }
 }

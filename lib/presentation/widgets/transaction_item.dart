@@ -49,14 +49,14 @@ class TransactionItem extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      transaction.title,
+                      transaction.title ?? '',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      transaction.description,
+                      transaction.description ?? '',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurface.withOpacity(0.7),
                       ),
@@ -65,9 +65,9 @@ class TransactionItem extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      DateFormat('dd/MM/yyyy HH:mm').format(transaction.createdAt),
+                      DateFormat('dd/MM/yyyy HH:mm').format(transaction.dateEvent),
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                   ],
@@ -111,44 +111,40 @@ class TransactionItem extends StatelessWidget {
 
   IconData _getTransactionIcon(TransactionType type) {
     switch (type) {
-      case TransactionType.transfer:
+      case TransactionType.transfert:
         return Icons.send;
-      case TransactionType.deposit:
+      case TransactionType.depot:
         return Icons.add_circle;
-      case TransactionType.withdraw:
+      case TransactionType.retrait:
         return Icons.remove_circle;
-      case TransactionType.payment:
+      case TransactionType.recharge:
         return Icons.payment;
-      case TransactionType.billPayment:
+      case TransactionType.virement:
         return Icons.receipt;
     }
   }
 
   Color _getTransactionColor(TransactionType type) {
     switch (type) {
-      case TransactionType.transfer:
+      case TransactionType.transfert:
         return Colors.blue;
-      case TransactionType.deposit:
+      case TransactionType.depot:
         return Colors.green;
-      case TransactionType.withdraw:
+      case TransactionType.retrait:
         return Colors.orange;
-      case TransactionType.payment:
+      case TransactionType.recharge:
         return Colors.purple;
-      case TransactionType.billPayment:
+      case TransactionType.virement:
         return Colors.red;
     }
   }
 
   Color _getStatusColor(TransactionStatus status) {
     switch (status) {
-      case TransactionStatus.pending:
-        return Colors.orange;
-      case TransactionStatus.completed:
+      case TransactionStatus.success:
         return Colors.green;
       case TransactionStatus.failed:
         return Colors.red;
-      case TransactionStatus.cancelled:
-        return Colors.grey;
     }
   }
 }

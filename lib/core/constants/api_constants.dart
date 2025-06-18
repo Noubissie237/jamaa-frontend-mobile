@@ -14,4 +14,5 @@ class ApiConstants {
   static const String accountServiceUrl = '$baseUrl/SERVICE-ACCOUNT/graphql';
   static const String cardServiceUrl = '$baseUrl/SERVICE-CARD/graphql';
   static const String bankServiceUrl = '$baseUrl/SERVICE-BANKS/graphql';
+  static const String transactionServiceUrl = '$baseUrl/SERVICE-TRANSACTIONS/graphql';
 }

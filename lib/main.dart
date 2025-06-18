@@ -26,6 +26,7 @@ class JamaaApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => BankProvider()),
         ChangeNotifierProvider(create: (_) => TransactionProvider()),
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
+        ChangeNotifierProvider(create: (_) => TransactionProvider()),
       ],
       child: Consumer<SettingsProvider>(
         builder: (context, settingsProvider, child) {

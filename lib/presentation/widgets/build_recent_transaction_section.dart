@@ -79,9 +79,12 @@ Widget buildRecentTransactionSection(BuildContext context) {
                             (transaction) => TransactionItem(
                               transaction: transaction,
                               onTap:
-                                  () => context.go(
-                                    '/main/transactions/detail/${transaction.id}',
-                                  ),
+                                  () {
+                                    print(transaction.transactionId);
+                                    context.go(
+                                      '/main/transactions/detail/${transaction.transactionId}',
+                                    );
+                                  },
                             ),
                           )
                           .toList(),

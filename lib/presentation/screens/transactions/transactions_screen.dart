@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/providers/transaction_provider.dart';
+import '../../../core/providers/auth_provider.dart';
 import '../../../core/models/transaction.dart';
 import '../../widgets/transaction_item.dart';
 
@@ -26,7 +27,10 @@ class _TransactionsScreenState extends State<TransactionsScreen>
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<TransactionProvider>().loadTransactions();
+      final userId = context.read<AuthProvider>().currentUser?.id;
+      if (userId != null) {
+        context.read<TransactionProvider>().loadTransactions(userId);
+      }
     });
   }
 
@@ -88,7 +92,7 @@ class _TransactionsScreenState extends State<TransactionsScreen>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    transactionProvider.error!,
+                    transactionProvider.error! as String,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurface.withOpacity(0.7),
                     ),
@@ -97,7 +101,10 @@ class _TransactionsScreenState extends State<TransactionsScreen>
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () {
-                      transactionProvider.loadTransactions();
+                      final userId = context.read<AuthProvider>().currentUser?.id;
+                      if (userId != null) {
+                        transactionProvider.loadTransactions(userId);
+                      }
                     },
                     child: const Text('Réessayer'),
                   ),
@@ -161,7 +168,12 @@ class _TransactionsScreenState extends State<TransactionsScreen>
     }
 
     return RefreshIndicator(
-      onRefresh: () => context.read<TransactionProvider>().loadTransactions(),
+      onRefresh: () async {
+        final userId = context.read<AuthProvider>().currentUser?.id;
+        if (userId != null) {
+          await context.read<TransactionProvider>().loadTransactions(userId);
+        }
+      },
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: filteredTransactions.length,
@@ -169,7 +181,7 @@ class _TransactionsScreenState extends State<TransactionsScreen>
           final transaction = filteredTransactions[index];
           return TransactionItem(
             transaction: transaction,
-            onTap: () => context.go('/main/transactions/detail/${transaction.id}'),
+            onTap: () => context.go('/main/transactions/detail/${transaction.transactionId}'),
           )
               .animate()
               .fadeIn(delay: (index * 100).ms, duration: 600.ms)
@@ -190,8 +202,8 @@ class _TransactionsScreenState extends State<TransactionsScreen>
     // Filtre par date
     if (_selectedDateRange != null) {
       filtered = filtered.where((t) {
-        return t.createdAt.isAfter(_selectedDateRange!.start) &&
-               t.createdAt.isBefore(_selectedDateRange!.end.add(const Duration(days: 1)));
+        return t.createdAtOrDateEvent.isAfter(_selectedDateRange!.start) &&
+               t.createdAtOrDateEvent.isBefore(_selectedDateRange!.end.add(const Duration(days: 1)));
       }).toList();
     }
 
@@ -344,16 +356,16 @@ class _TransactionsScreenState extends State<TransactionsScreen>
 
   String _getTypeLabel(TransactionType type) {
     switch (type) {
-      case TransactionType.transfer:
+      case TransactionType.transfert:
         return 'Transfert';
-      case TransactionType.deposit:
+      case TransactionType.depot:
         return 'Dépôt';
-      case TransactionType.withdraw:
+      case TransactionType.retrait:
         return 'Retrait';
-      case TransactionType.payment:
-        return 'Paiement';
-      case TransactionType.billPayment:
-        return 'Facture';
+      case TransactionType.recharge:
+        return 'Recharge';
+      case TransactionType.virement:
+        return 'Virement';
     }
   }
 

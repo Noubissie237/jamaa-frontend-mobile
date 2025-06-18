@@ -32,7 +32,7 @@ class TransactionDetailScreen extends StatelessWidget {
       body: Consumer<TransactionProvider>(
         builder: (context, transactionProvider, child) {
           final transaction = transactionProvider.transactions
-              .where((t) => t.id == transactionId)
+              .where((t) => t.transactionId == transactionId)
               .firstOrNull;
 
           if (transaction == null) {
@@ -104,7 +104,7 @@ class TransactionDetailScreen extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: _getTransactionColor(transaction.type).withOpacity(0.1),
+                color: _getTransactionColor(transaction.type).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(40),
               ),
               child: Icon(
@@ -136,7 +136,7 @@ class TransactionDetailScreen extends StatelessWidget {
             
             // Titre
             Text(
-              transaction.title,
+              transaction.title ?? 'Transaction ${transaction.typeLabel}',
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -152,9 +152,9 @@ class TransactionDetailScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: statusColor.withOpacity(0.1),
+                color: statusColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: statusColor.withOpacity(0.3)),
+                border: Border.all(color: statusColor.withValues(alpha: 0.3)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -210,13 +210,13 @@ class TransactionDetailScreen extends StatelessWidget {
             
             _buildInfoRow(
               'Date',
-              DateFormat('dd MMMM yyyy à HH:mm', 'fr_FR').format(transaction.createdAt),
+              DateFormat('dd MMMM yyyy à HH:mm', 'fr_FR').format(transaction.createdAtOrDateEvent),
               theme,
             ),
             
             _buildInfoRow(
               'Référence',
-              transaction.reference ?? 'N/A',
+              transaction.reference ?? 'TXN-${transaction.transactionId.substring(0, 8).toUpperCase()}',
               theme,
             ),
             
@@ -266,7 +266,7 @@ class TransactionDetailScreen extends StatelessWidget {
             
             _buildInfoRow(
               'Description',
-              transaction.description,
+              transaction.description ?? 'Transaction ${transaction.typeLabel.toLowerCase()}',
               theme,
             ),
             
@@ -278,7 +278,25 @@ class TransactionDetailScreen extends StatelessWidget {
             
             _buildInfoRow(
               'Montant',
-              transaction.amount.abs().toStringAsFixed(0),
+              '${transaction.amount.abs().toStringAsFixed(0)} ${transaction.currency}',
+              theme,
+            ),
+            
+            _buildInfoRow(
+              'ID Transaction',
+              transaction.transactionId,
+              theme,
+            ),
+            
+            _buildInfoRow(
+              'Compte expéditeur',
+              transaction.idAccountSender.toString(),
+              theme,
+            ),
+            
+            _buildInfoRow(
+              'Compte destinataire',
+              transaction.idAccountReceiver.toString(),
               theme,
             ),
             
@@ -358,7 +376,7 @@ class TransactionDetailScreen extends StatelessWidget {
             child: Text(
               label,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.7),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -378,44 +396,40 @@ class TransactionDetailScreen extends StatelessWidget {
 
   IconData _getTransactionIcon(TransactionType type) {
     switch (type) {
-      case TransactionType.transfer:
+      case TransactionType.transfert:
         return Icons.send;
-      case TransactionType.deposit:
+      case TransactionType.depot:
         return Icons.add_circle;
-      case TransactionType.withdraw:
+      case TransactionType.retrait:
         return Icons.remove_circle;
-      case TransactionType.payment:
+      case TransactionType.recharge:
         return Icons.payment;
-      case TransactionType.billPayment:
+      case TransactionType.virement:
         return Icons.receipt;
     }
   }
 
   Color _getTransactionColor(TransactionType type) {
     switch (type) {
-      case TransactionType.transfer:
+      case TransactionType.transfert:
         return Colors.blue;
-      case TransactionType.deposit:
+      case TransactionType.depot:
         return Colors.green;
-      case TransactionType.withdraw:
+      case TransactionType.retrait:
         return Colors.orange;
-      case TransactionType.payment:
+      case TransactionType.recharge:
         return Colors.purple;
-      case TransactionType.billPayment:
+      case TransactionType.virement:
         return Colors.red;
     }
   }
 
   Color _getStatusColor(TransactionStatus status) {
     switch (status) {
-      case TransactionStatus.pending:
-        return Colors.orange;
-      case TransactionStatus.completed:
+      case TransactionStatus.success:
         return Colors.green;
       case TransactionStatus.failed:
         return Colors.red;
-      case TransactionStatus.cancelled:
-        return Colors.grey;
     }
   }
 
