@@ -4,7 +4,6 @@ import 'package:jamaa_frontend_mobile/core/providers/dashboard_provider.dart';
 
 Widget buildAccountsSummary(BuildContext context, DashboardProvider dashboardProvider) {
     final totalAccounts = dashboardProvider.bankAccounts.length;
-    final activeAccounts = dashboardProvider.bankAccounts.where((a) => a.isActive).length;
     
     return Card(
       child: Padding(
@@ -17,7 +16,7 @@ Widget buildAccountsSummary(BuildContext context, DashboardProvider dashboardPro
                   width: 60,
                   height: 60,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.1),
+                    color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(30),
                   ),
                   child: Icon(
@@ -34,7 +33,7 @@ Widget buildAccountsSummary(BuildContext context, DashboardProvider dashboardPro
                       Text(
                         'Solde total',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -67,30 +66,7 @@ Widget buildAccountsSummary(BuildContext context, DashboardProvider dashboardPro
                       Text(
                         'Comptes liés',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  width: 1,
-                  height: 40,
-                  color: Theme.of(context).dividerColor,
-                ),
-                Expanded(
-                  child: Column(
-                    children: [
-                      Text(
-                        activeAccounts.toString(),
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        'Actifs',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                         ),
                       ),
                     ],

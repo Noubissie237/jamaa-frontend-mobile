@@ -22,7 +22,7 @@ class _BanksScreenState extends State<BanksScreen> {
       final userId = context.read<AuthProvider>().currentUser!.id.toString();
       context.read<DashboardProvider>().loadDashboardData(userId: userId);
       // Utiliser loadAvailableBanks au lieu de fetchBanks pour charger les banques et les comptes utilisateur
-      context.read<BankProvider>().loadAvailableBanks(userId);
+      context.read<BankProvider>().loadAvailableBanks(userId as int);
     });
   }
 
@@ -80,7 +80,7 @@ class _BanksScreenState extends State<BanksScreen> {
                     onPressed: () {
                       final userId = context.read<AuthProvider>().currentUser!.id.toString();
                       dashboardProvider.loadDashboardData(userId: userId);
-                      bankProvider.loadAvailableBanks(userId);
+                      bankProvider.loadAvailableBanks(userId as int);
                     },
                     child: const Text('Réessayer'),
                   ),
@@ -94,7 +94,7 @@ class _BanksScreenState extends State<BanksScreen> {
               final userId = context.read<AuthProvider>().currentUser!.id.toString();
               await Future.wait([
                 dashboardProvider.refreshBalance(userId: userId),
-                bankProvider.refreshAvailableBanks(userId),
+                bankProvider.refreshAvailableBanks(userId as int),
               ]);
             },
             child: SingleChildScrollView(

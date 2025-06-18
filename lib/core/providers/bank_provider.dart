@@ -10,12 +10,14 @@ class BankProvider extends ChangeNotifier {
   List<BankAccount> _userBankAccounts = [];
   bool _isLoading = false;
   bool _isLoadingAvailable = false;
+  bool _isSubscribing = false;
   String? _error;
 
   List<Bank> get banks => _banks;
   List<BankAccount> get userBankAccounts => _userBankAccounts;
   bool get isLoading => _isLoading;
   bool get isLoadingAvailable => _isLoadingAvailable;
+  bool get isSubscribing => _isSubscribing;
   String? get error => _error;
 
   // Getter pour les banques disponibles (non utilisées par l'utilisateur)
@@ -150,8 +152,85 @@ class BankProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Nouvelle méthode pour souscrire à une banque
+  Future<Map<String, dynamic>> subscribeToBank({
+    required int userId, // Changé en int pour correspondre au modèle User
+    required String bankId,
+  }) async {
+    _isSubscribing = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      // Utiliser l'URL appropriée pour la souscription (peut être bankServiceUrl ou un autre endpoint)
+      final url = Uri.parse(ApiConstants.bankServiceUrl);
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'query': '''
+            mutation SubscribeToBank {
+              subscribeToBank(subscription: {
+                userId: "$userId"
+                bankId: "$bankId"
+              }) {
+                id
+                userId
+                bankId
+                status
+                createdAt
+              }
+            }
+          '''
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        
+        // Vérifier les erreurs GraphQL
+        if (data['errors'] != null) {
+          final errorMessage = data['errors'][0]['message'] ?? 'Erreur lors de la souscription';
+          _error = errorMessage;
+          return {
+            'success': false,
+            'error': errorMessage,
+          };
+        } else {
+          final subscriptionData = data['data']['subscribeToBank'];
+          
+          // Rafraîchir les comptes bancaires de l'utilisateur après la souscription
+          await fetchUserBankAccounts(userId.toString());
+          
+          return {
+            'success': true,
+            'data': subscriptionData,
+            'message': 'Souscription réussie!',
+          };
+        }
+      } else {
+        final errorMessage = 'Erreur réseau : ${response.statusCode}';
+        _error = errorMessage;
+        return {
+          'success': false,
+          'error': errorMessage,
+        };
+      }
+    } catch (e) {
+      final errorMessage = 'Erreur lors de la souscription: $e';
+      _error = errorMessage;
+      return {
+        'success': false,
+        'error': errorMessage,
+      };
+    } finally {
+      _isSubscribing = false;
+      notifyListeners();
+    }
+  }
+
   // Méthode combinée pour charger les banques et les comptes de l'utilisateur
-  Future<void> loadAvailableBanks(String userId) async {
+  Future<void> loadAvailableBanks(int userId) async { // Changé en int
     _isLoadingAvailable = true;
     _error = null;
     notifyListeners();
@@ -160,7 +239,7 @@ class BankProvider extends ChangeNotifier {
       // Charger les données en parallèle pour optimiser les performances
       await Future.wait([
         fetchBanks(),
-        fetchUserBankAccounts(userId),
+        fetchUserBankAccounts(userId.toString()), // Convertir en String pour l'API
       ]);
     } catch (e) {
       _error = 'Erreur lors du chargement des banques disponibles: $e';
@@ -171,7 +250,7 @@ class BankProvider extends ChangeNotifier {
   }
 
   // Méthode pour rafraîchir les données
-  Future<void> refreshAvailableBanks(String userId) async {
+  Future<void> refreshAvailableBanks(int userId) async { // Changé en int
     await loadAvailableBanks(userId);
   }
 
