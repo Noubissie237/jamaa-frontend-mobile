@@ -185,7 +185,7 @@ class _WithdrawScreenState extends State<WithdrawScreen>
           CustomTextField(
             controller: _agentPhoneController,
             label: 'Numéro de téléphone',
-            hint: '+237123456789',
+            hint: '690232120',
             prefixIcon: Icons.phone,
             keyboardType: TextInputType.phone,
           )

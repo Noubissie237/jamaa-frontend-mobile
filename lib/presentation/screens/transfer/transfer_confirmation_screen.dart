@@ -207,19 +207,10 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
           _buildDetailRow('Type', 'Transfert bancaire', theme),
         ]);
         break;
-      case 'mobile':
-        details.addAll([
-          _buildDetailRow('Opérateur', widget.transferData['operator'], theme),
-          _buildDetailRow('Numéro', widget.transferData['phoneNumber'], theme),
-          _buildDetailRow('Type', 'Mobile Money', theme),
-        ]);
-        break;
     }
     
     details.addAll([
       _buildDetailRow('Montant', '${widget.transferData['amount'].toStringAsFixed(0)} XAF', theme),
-      if (widget.transferData['reason'] != null && widget.transferData['reason'].isNotEmpty)
-        _buildDetailRow('Motif', widget.transferData['reason'], theme),
       _buildDetailRow('Date', _getCurrentDateTime(), theme),
     ]);
     

@@ -29,13 +29,7 @@ class _TransferScreenState extends State<TransferScreen>
   final _bankAmountController = TextEditingController();
   final _bankReasonController = TextEditingController();
   
-  // Controllers pour Mobile Money
-  final _mobileNumberController = TextEditingController();
-  final _mobileAmountController = TextEditingController();
-  final _mobileReasonController = TextEditingController();
-  
   String? _selectedBank;
-  String? _selectedMobileOperator;
 
   final List<String> _banks = [
     'Afriland First Bank',
@@ -45,16 +39,10 @@ class _TransferScreenState extends State<TransferScreen>
     'SGBC',
   ];
 
-  final List<String> _mobileOperators = [
-    'MTN Mobile Money',
-    'Orange Money',
-    'Express Union Mobile',
-  ];
-
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
@@ -66,9 +54,6 @@ class _TransferScreenState extends State<TransferScreen>
     _bankAccountController.dispose();
     _bankAmountController.dispose();
     _bankReasonController.dispose();
-    _mobileNumberController.dispose();
-    _mobileAmountController.dispose();
-    _mobileReasonController.dispose();
     super.dispose();
   }
 
@@ -90,11 +75,7 @@ class _TransferScreenState extends State<TransferScreen>
             Tab(
               icon: Icon(Icons.account_balance),
               text: 'Banque',
-            ),
-            Tab(
-              icon: Icon(Icons.phone_android),
-              text: 'Mobile Money',
-            ),
+            )
           ],
         ),
       ),
@@ -105,7 +86,6 @@ class _TransferScreenState extends State<TransferScreen>
           children: [
             _buildUserTransferTab(),
             _buildBankTransferTab(),
-            _buildMobileMoneyTab(),
           ],
         ),
       ),
@@ -138,7 +118,7 @@ class _TransferScreenState extends State<TransferScreen>
           CustomTextField(
             controller: _recipientController,
             label: 'Email ou téléphone',
-            hint: 'exemple@email.com ou +237123456789',
+            hint: 'ex@email.com ou 690232120',
             prefixIcon: Icons.person_outline,
             keyboardType: TextInputType.emailAddress,
             validator: (value) {
@@ -151,11 +131,6 @@ class _TransferScreenState extends State<TransferScreen>
               .animate()
               .fadeIn(delay: 300.ms, duration: 600.ms)
               .slideX(begin: -0.2, end: 0),
-          
-          const SizedBox(height: 16),
-          
-          // Contacts récents
-          _buildRecentContacts(),
           
           const SizedBox(height: 24),
           
@@ -203,31 +178,6 @@ class _TransferScreenState extends State<TransferScreen>
           _buildQuickAmounts(_amountController),
           
           const SizedBox(height: 24),
-          
-          // Motif
-          Text(
-            'Motif (optionnel)',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          )
-              .animate()
-              .fadeIn(delay: 600.ms, duration: 600.ms),
-          
-          const SizedBox(height: 12),
-          
-          CustomTextField(
-            controller: _reasonController,
-            label: 'Motif du transfert',
-            hint: 'Ex: Remboursement, cadeau...',
-            prefixIcon: Icons.note_outlined,
-            maxLines: 2,
-          )
-              .animate()
-              .fadeIn(delay: 700.ms, duration: 600.ms)
-              .slideX(begin: -0.2, end: 0),
-          
-          const SizedBox(height: 32),
           
           // Bouton continuer
           SizedBox(
@@ -352,154 +302,11 @@ class _TransferScreenState extends State<TransferScreen>
           
           const SizedBox(height: 24),
           
-          // Motif
-          CustomTextField(
-            controller: _bankReasonController,
-            label: 'Motif (optionnel)',
-            hint: 'Ex: Virement personnel...',
-            prefixIcon: Icons.note_outlined,
-            maxLines: 2,
-          ),
-          
-          const SizedBox(height: 32),
-          
           // Bouton continuer
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () => _proceedToConfirmation('bank'),
-              child: const Text('Continuer'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMobileMoneyTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Solde disponible
-          _buildBalanceCard(),
-          
-          const SizedBox(height: 24),
-          
-          // Opérateur
-          Text(
-            'Opérateur Mobile Money',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          
-          const SizedBox(height: 12),
-          
-          DropdownButtonFormField<String>(
-            value: _selectedMobileOperator,
-            decoration: const InputDecoration(
-              labelText: 'Sélectionner un opérateur',
-              prefixIcon: Icon(Icons.phone_android),
-            ),
-            items: _mobileOperators.map((operator) {
-              return DropdownMenuItem(
-                value: operator,
-                child: Text(operator),
-              );
-            }).toList(),
-            onChanged: (value) {
-              setState(() {
-                _selectedMobileOperator = value;
-              });
-            },
-            validator: (value) {
-              if (value == null) {
-                return 'Veuillez sélectionner un opérateur';
-              }
-              return null;
-            },
-          ),
-          
-          const SizedBox(height: 16),
-          
-          // Numéro de téléphone
-          CustomTextField(
-            controller: _mobileNumberController,
-            label: 'Numéro de téléphone',
-            hint: '+237123456789',
-            prefixIcon: Icons.phone,
-            keyboardType: TextInputType.phone,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Veuillez saisir le numéro de téléphone';
-              }
-              if (!RegExp(r'^\+?[0-9]{8,15}$').hasMatch(value.replaceAll(' ', ''))) {
-                return 'Numéro de téléphone invalide';
-              }
-              return null;
-            },
-          ),
-          
-          const SizedBox(height: 24),
-          
-          // Montant
-          Text(
-            'Montant',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          
-          const SizedBox(height: 12),
-          
-          CustomTextField(
-            controller: _mobileAmountController,
-            label: 'Montant (XAF)',
-            prefixIcon: Icons.money,
-            keyboardType: TextInputType.number,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-            ],
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Veuillez saisir un montant';
-              }
-              final amount = int.tryParse(value);
-              if (amount == null || amount <= 0) {
-                return 'Montant invalide';
-              }
-              if (amount < 100) {
-                return 'Montant minimum : 100 XAF';
-              }
-              return null;
-            },
-          ),
-          
-          const SizedBox(height: 16),
-          
-          // Montants rapides
-          _buildQuickAmounts(_mobileAmountController),
-          
-          const SizedBox(height: 24),
-          
-          // Motif
-          CustomTextField(
-            controller: _mobileReasonController,
-            label: 'Motif (optionnel)',
-            hint: 'Ex: Cadeau, remboursement...',
-            prefixIcon: Icons.note_outlined,
-            maxLines: 2,
-          ),
-          
-          const SizedBox(height: 32),
-          
-          // Bouton continuer
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => _proceedToConfirmation('mobile'),
               child: const Text('Continuer'),
             ),
           ),
@@ -552,76 +359,6 @@ class _TransferScreenState extends State<TransferScreen>
         .slideY(begin: -0.2, end: 0);
   }
 
-  Widget _buildRecentContacts() {
-    final recentContacts = [
-      {'name': 'Marie Nguyen', 'phone': '+237698765432'},
-      {'name': 'Paul Kamga', 'phone': '+237677654321'},
-      {'name': 'Sarah Mballa', 'phone': '+237655432109'},
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Contacts récents',
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-          ),
-        ),
-        const SizedBox(height: 8),
-        SizedBox(
-          height: 80,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: recentContacts.length,
-            itemBuilder: (context, index) {
-              final contact = recentContacts[index];
-              return Container(
-                width: 70,
-                margin: const EdgeInsets.only(right: 12),
-                child: InkWell(
-                  onTap: () {
-                    _recipientController.text = contact['phone']!;
-                  },
-                  borderRadius: BorderRadius.circular(12),
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                        child: Center(
-                          child: Text(
-                            contact['name']!.substring(0, 1),
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: Theme.of(context).primaryColor,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        contact['name']!.split(' ')[0],
-                        style: Theme.of(context).textTheme.bodySmall,
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildQuickAmounts(TextEditingController controller) {
     final quickAmounts = [1000, 5000, 10000, 25000, 50000, 100000];
@@ -695,21 +432,6 @@ class _TransferScreenState extends State<TransferScreen>
           'accountNumber': _bankAccountController.text,
           'amount': double.parse(_bankAmountController.text),
           'reason': _bankReasonController.text,
-        };
-        break;
-      case 'mobile':
-        if (_selectedMobileOperator == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Veuillez sélectionner un opérateur')),
-          );
-          return;
-        }
-        transferData = {
-          'type': 'mobile',
-          'operator': _selectedMobileOperator,
-          'phoneNumber': _mobileNumberController.text,
-          'amount': double.parse(_mobileAmountController.text),
-          'reason': _mobileReasonController.text,
         };
         break;
       default:
