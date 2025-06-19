@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:provider/provider.dart';
-import 'package:go_router/go_router.dart';
-
-import '../../../core/providers/dashboard_provider.dart';
+import 'package:jamaa_frontend_mobile/presentation/widgets/build_balance_card.dart';
+import 'package:jamaa_frontend_mobile/presentation/widgets/build_quick_amount.dart';
+import 'package:jamaa_frontend_mobile/presentation/widgets/proceed_to_confirmation.dart';
 import '../../widgets/custom_text_field.dart';
 
 class TransferScreen extends StatefulWidget {
@@ -99,7 +98,7 @@ class _TransferScreenState extends State<TransferScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Solde disponible
-          _buildBalanceCard(),
+          buildBalanceCard(),
           
           const SizedBox(height: 24),
           
@@ -117,13 +116,13 @@ class _TransferScreenState extends State<TransferScreen>
           
           CustomTextField(
             controller: _recipientController,
-            label: 'Email ou téléphone',
-            hint: 'ex@email.com ou 690232120',
+            label: 'Téléphone',
+            hint: 'ex: 690232120',
             prefixIcon: Icons.person_outline,
-            keyboardType: TextInputType.emailAddress,
+            keyboardType: TextInputType.number,
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'Veuillez saisir l\'email ou le téléphone du bénéficiaire';
+                return 'Veuillez saisir le téléphone du bénéficiaire';
               }
               return null;
             },
@@ -175,7 +174,7 @@ class _TransferScreenState extends State<TransferScreen>
           const SizedBox(height: 16),
           
           // Montants rapides
-          _buildQuickAmounts(_amountController),
+          buildQuickAmounts(context, _amountController),
           
           const SizedBox(height: 24),
           
@@ -183,7 +182,7 @@ class _TransferScreenState extends State<TransferScreen>
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () => _proceedToConfirmation('user'),
+              onPressed: () => proceedToConfirmation('user', context, _formKey, _recipientController, _amountController, _reasonController, _bankAccountController, _bankAmountController, _bankReasonController, _selectedBank),
               child: const Text('Continuer'),
             ),
           )
@@ -202,7 +201,7 @@ class _TransferScreenState extends State<TransferScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Solde disponible
-          _buildBalanceCard(),
+          buildBalanceCard(),
           
           const SizedBox(height: 24),
           
@@ -298,7 +297,7 @@ class _TransferScreenState extends State<TransferScreen>
           const SizedBox(height: 16),
           
           // Montants rapides
-          _buildQuickAmounts(_bankAmountController),
+          buildQuickAmounts(context, _bankAmountController),
           
           const SizedBox(height: 24),
           
@@ -306,7 +305,7 @@ class _TransferScreenState extends State<TransferScreen>
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () => _proceedToConfirmation('bank'),
+              onPressed: () => proceedToConfirmation('bank', context, _formKey, _recipientController, _amountController, _reasonController, _bankAccountController, _bankAmountController, _bankReasonController, _selectedBank),
               child: const Text('Continuer'),
             ),
           ),
@@ -315,129 +314,4 @@ class _TransferScreenState extends State<TransferScreen>
     );
   }
 
-  Widget _buildBalanceCard() {
-    return Consumer<DashboardProvider>(
-      builder: (context, dashboardProvider, child) {
-        return Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Theme.of(context).primaryColor,
-                Theme.of(context).primaryColor.withOpacity(0.8),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Solde disponible',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.white.withOpacity(0.9),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                dashboardProvider.formattedTotalBalance,
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    )
-        .animate()
-        .fadeIn(delay: 100.ms, duration: 600.ms)
-        .slideY(begin: -0.2, end: 0);
-  }
-
-
-  Widget _buildQuickAmounts(TextEditingController controller) {
-    final quickAmounts = [1000, 5000, 10000, 25000, 50000, 100000];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Montants rapides',
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: quickAmounts.map((amount) {
-            return InkWell(
-              onTap: () {
-                controller.text = amount.toString();
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Theme.of(context).primaryColor.withOpacity(0.3),
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  '${amount.toString()} XAF',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).primaryColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
-  void _proceedToConfirmation(String transferType) {
-    if (!_formKey.currentState!.validate()) return;
-
-    Map<String, dynamic> transferData;
-
-    switch (transferType) {
-      case 'user':
-        transferData = {
-          'type': 'user',
-          'recipient': _recipientController.text,
-          'amount': double.parse(_amountController.text),
-          'reason': _reasonController.text,
-        };
-        break;
-      case 'bank':
-        if (_selectedBank == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Veuillez sélectionner une banque')),
-          );
-          return;
-        }
-        transferData = {
-          'type': 'bank',
-          'bank': _selectedBank,
-          'accountNumber': _bankAccountController.text,
-          'amount': double.parse(_bankAmountController.text),
-          'reason': _bankReasonController.text,
-        };
-        break;
-      default:
-        return;
-    }
-
-    context.go('/main/transfer/confirmation', extra: transferData);
-  }
 }

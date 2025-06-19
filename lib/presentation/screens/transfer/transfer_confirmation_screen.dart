@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:jamaa_frontend_mobile/utils/account_service.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/providers/transaction_provider.dart';
+import '../../../core/providers/transfert_provider.dart';
+import '../../../core/providers/auth_provider.dart';
 import '../../widgets/loading_button.dart';
 
 class TransferConfirmationScreen extends StatefulWidget {
@@ -83,7 +87,7 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: theme.primaryColor.withOpacity(0.1),
+                color: theme.primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(40),
               ),
               child: Icon(
@@ -131,9 +135,9 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.1),
+                color: Colors.orange.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -228,7 +232,7 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
             child: Text(
               label,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.7),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -332,14 +336,14 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
                 Icon(
                   Icons.security,
                   size: 16,
-                  color: theme.colorScheme.onSurface.withOpacity(0.6),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Votre code PIN est requis pour confirmer cette transaction',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurface.withOpacity(0.6),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                 ),
@@ -359,11 +363,11 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
       children: [
         SizedBox(
           width: double.infinity,
-          child: Consumer<TransactionProvider>(
-            builder: (context, transactionProvider, child) {
+          child: Consumer2<TransactionProvider, TransfertProvider>(
+            builder: (context, transactionProvider, transfertProvider, child) {
               return LoadingButton(
-                onPressed: _isProcessing ? null : _processTransfer,
-                isLoading: _isProcessing,
+                onPressed: _isProcessing || transfertProvider.isTransferring ? null : _processTransfer,
+                isLoading: _isProcessing || transfertProvider.isTransferring,
                 child: const Text('Confirmer le transfert'),
               );
             },
@@ -392,8 +396,6 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
         return Icons.person_outline;
       case 'bank':
         return Icons.account_balance;
-      case 'mobile':
-        return Icons.phone_android;
       default:
         return Icons.send;
     }
@@ -405,8 +407,6 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
         return 'Transfert vers utilisateur JAMAA';
       case 'bank':
         return 'Transfert vers compte bancaire';
-      case 'mobile':
-        return 'Transfert Mobile Money';
       default:
         return 'Transfert';
     }
@@ -427,7 +427,206 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
   }
 
   Future<void> _processTransfer() async {
+    if (_isProcessing) return;
 
+    // Validation du PIN
+    if (_pinController.text.trim().length != 4) {
+      _showErrorDialog('Veuillez saisir un code PIN à 4 chiffres');
+      return;
+    }
+
+    setState(() {
+      _isProcessing = true;
+    });
+
+    try {
+      final transferType = widget.transferData['type'] as String;
+      
+      if (transferType == 'user') {
+        await _processUserTransfer();
+      } else if (transferType == 'bank') {
+        await _processBankTransfer();
+      } else {
+        _showErrorDialog('Type de transfert non supporté');
+      }
+
+    } catch (e) {
+      debugPrint('[TRANSFER] Erreur inattendue: $e');
+      _showErrorDialog('Une erreur inattendue s\'est produite');
+    } finally {
+      setState(() {
+        _isProcessing = false;
+      });
+    }
   }
 
+  Future<void> _processUserTransfer() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final transfertProvider = Provider.of<TransfertProvider>(context, listen: false);
+    final prefs = await SharedPreferences.getInstance();
+    final pin = prefs.getString('user_pin');
+    // Vérifier que l'utilisateur est connecté
+    if (authProvider.currentUser == null) {
+      _showErrorDialog('Vous devez être connecté pour effectuer un transfert');
+      return;
+    }
+
+    if (pin != _pinController.text.trim()) {
+      _showErrorDialog('Code PIN incorrect');
+      return;
+    }
+
+    // Récupérer les informations du transfert
+    final recipientPhone = widget.transferData['recipient'] as String;
+    final amount = widget.transferData['amount'] as double;
+    final senderPhone = authProvider.currentUser!.phone;
+
+    debugPrint('[TRANSFER] Début du transfert utilisateur');
+    debugPrint('[TRANSFER] Expéditeur: $senderPhone');
+    debugPrint('[TRANSFER] Bénéficiaire: $recipientPhone');
+    debugPrint('[TRANSFER] Montant: $amount XAF');
+
+    // Vérifier qu'on ne transfère pas vers soi-même
+    if (senderPhone == recipientPhone) {
+      _showErrorDialog('Vous ne pouvez pas effectuer un transfert vers votre propre compte');
+      return;
+    }
+
+    try {
+      // Étape 1: Récupérer l'ID du compte expéditeur
+      debugPrint('[TRANSFER] Récupération de l\'ID du compte expéditeur...');
+      final senderAccountId = await AccountService.getAccountIdByPhone(senderPhone);
+      
+      if (senderAccountId == null) {
+        _showErrorDialog('Impossible de récupérer votre compte. Veuillez réessayer.');
+        return;
+      }
+      
+      debugPrint('[TRANSFER] ID compte expéditeur: $senderAccountId');
+
+      // Étape 2: Récupérer l'ID du compte bénéficiaire
+      debugPrint('[TRANSFER] Récupération de l\'ID du compte bénéficiaire...');
+      final receiverAccountId = await AccountService.getAccountIdByPhone(recipientPhone);
+      
+      if (receiverAccountId == null) {
+        _showErrorDialog('Le bénéficiaire n\'a pas été trouvé. Vérifiez le numéro de téléphone.');
+        return;
+      }
+      
+      debugPrint('[TRANSFER] ID compte bénéficiaire: $receiverAccountId');
+
+      // Étape 3: Effectuer le transfert
+      debugPrint('[TRANSFER] Exécution du transfert...');
+      final success = await transfertProvider.makeAppTransfert(
+        senderAccountId: senderAccountId,
+        receiverAccountId: receiverAccountId,
+        amount: amount,
+      );
+
+      if (success) {
+        debugPrint('[TRANSFER] Transfert réussi!');
+        _showSuccessDialog();
+      } else {
+        debugPrint('[TRANSFER] Échec du transfert: ${transfertProvider.error?.message}');
+        _showErrorDialog(
+          transfertProvider.error?.message ?? 'Le transfert a échoué. Veuillez réessayer.'
+        );
+      }
+
+    } catch (e) {
+      debugPrint('[TRANSFER] Erreur lors du transfert: $e');
+      _showErrorDialog('Erreur lors du transfert: ${e.toString()}');
+    }
+  }
+
+  Future<void> _processBankTransfer() async {
+    // TODO: Implémenter le transfert bancaire
+    _showErrorDialog('Les transferts bancaires ne sont pas encore implémentés');
+  }
+
+void _showErrorDialog(String message) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      title: Row(
+        children: const [
+          Icon(Icons.error_outline, color: Colors.red),
+          SizedBox(width: 10),
+          Text('Erreur', style: TextStyle(fontWeight: FontWeight.bold)),
+        ],
+      ),
+      content: Text(
+        message,
+        style: const TextStyle(fontSize: 16),
+      ),
+      actions: [
+        TextButton(
+          style: TextButton.styleFrom(
+            foregroundColor: Colors.white,
+            backgroundColor: Colors.redAccent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Fermer'),
+        ),
+      ],
+    ),
+  );
+}
+
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green, size: 28),
+            const SizedBox(width: 12),
+            const Text('Transfert réussi'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Votre transfert a été effectué avec succès !'),
+            const SizedBox(height: 16),
+            Text(
+              'Montant: ${widget.transferData['amount'].toStringAsFixed(0)} XAF',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            Text(
+              'Bénéficiaire: ${widget.transferData['recipient']}',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            Text(
+              'Date: ${_getCurrentDateTime()}',
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              // Fermer le dialog et retourner à l'écran principal
+              Navigator.pop(context); // Fermer le dialog
+              Navigator.pop(context); // Retourner à l'écran précédent
+              Navigator.pop(context); // Retourner au dashboard
+            },
+            child: const Text('Terminer'),
+          ),
+        ],
+      ),
+    );
+  }
 }
