@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/providers/transaction_provider.dart';
 import '../../../core/providers/transfert_provider.dart';
 import '../../../core/providers/auth_provider.dart';
+import '../../../core/providers/card_provider.dart';
 import '../../widgets/loading_button.dart';
 
 class TransferConfirmationScreen extends StatefulWidget {
@@ -36,9 +37,13 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
     final theme = Theme.of(context);
     
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('Confirmation'),
+        title: const Text('Confirmation du transfert'),
         centerTitle: true,
+        elevation: 0,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -48,17 +53,17 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
             // Récapitulatif du transfert
             _buildTransferSummary(theme),
             
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             
             // Détails de la transaction
             _buildTransferDetails(theme),
             
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             
             // Frais de transfert
             _buildFeesSection(theme),
             
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             
             // Code PIN
             _buildPinSection(theme),
@@ -77,9 +82,25 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
     final transferType = widget.transferData['type'] as String;
     final amount = widget.transferData['amount'] as double;
     
-    return Card(
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [theme.primaryColor, theme.primaryColor.withOpacity(0.8)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: theme.primaryColor.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         child: Column(
           children: [
             // Icône du type de transfert
@@ -87,28 +108,30 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: theme.primaryColor.withValues(alpha: 0.1),
+                color: Colors.white.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(40),
+                border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
               ),
               child: Icon(
                 _getTransferIcon(transferType),
                 size: 40,
-                color: theme.primaryColor,
+                color: Colors.white,
               ),
             )
                 .animate()
                 .scale(duration: 600.ms, curve: Curves.elasticOut)
                 .then(delay: 200.ms)
-                .shimmer(duration: 1000.ms),
+                .shimmer(duration: 1000.ms, color: Colors.white.withOpacity(0.5)),
             
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             
             // Montant
             Text(
               '${amount.toStringAsFixed(0)} XAF',
               style: theme.textTheme.displaySmall?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: theme.primaryColor,
+                color: Colors.white,
+                letterSpacing: 1.2,
               ),
             )
                 .animate()
@@ -121,7 +144,8 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
             Text(
               _getTransferDescription(transferType),
               style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
+                color: Colors.white.withOpacity(0.9),
               ),
               textAlign: TextAlign.center,
             )
@@ -135,9 +159,9 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.orange.withValues(alpha: 0.1),
+                color: Colors.white.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                border: Border.all(color: Colors.white.withOpacity(0.3)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -145,13 +169,13 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
                   Icon(
                     Icons.schedule,
                     size: 16,
-                    color: Colors.orange,
+                    color: Colors.white,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'En attente de confirmation',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.orange,
+                      color: Colors.white,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -171,18 +195,27 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
     final transferType = widget.transferData['type'] as String;
     
     return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Détails du transfert',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              children: [
+                Icon(Icons.receipt_long, color: theme.primaryColor, size: 24),
+                const SizedBox(width: 12),
+                Text(
+                  'Détails du transfert',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.primaryColor,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             
             ..._buildTransferDetailRows(transferType, theme),
           ],
@@ -200,39 +233,43 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
     switch (transferType) {
       case 'user':
         details.addAll([
-          _buildDetailRow('Bénéficiaire', widget.transferData['recipient'], theme),
-          _buildDetailRow('Type', 'Transfert utilisateur', theme),
+          _buildDetailRow('Bénéficiaire', widget.transferData['recipient'], theme, Icons.person),
+          _buildDetailRow('Type', 'Transfert utilisateur', theme, Icons.swap_horiz),
         ]);
         break;
       case 'bank':
         details.addAll([
-          _buildDetailRow('Banque', widget.transferData['bank'], theme),
-          _buildDetailRow('Compte', widget.transferData['accountNumber'], theme),
-          _buildDetailRow('Type', 'Transfert bancaire', theme),
+          _buildDetailRow('Banque expéditrice', widget.transferData['senderBankName'], theme, Icons.account_balance),
+          _buildDetailRow('Compte destinataire', widget.transferData['receiverAccountNumber'], theme, Icons.credit_card),
+          _buildDetailRow('Type', 'Transfert bancaire', theme, Icons.swap_horiz),
         ]);
         break;
     }
     
     details.addAll([
-      _buildDetailRow('Montant', '${widget.transferData['amount'].toStringAsFixed(0)} XAF', theme),
-      _buildDetailRow('Date', _getCurrentDateTime(), theme),
+      _buildDetailRow('Montant', '${widget.transferData['amount'].toStringAsFixed(0)} XAF', theme, Icons.money),
+      _buildDetailRow('Date', _getCurrentDateTime(), theme, Icons.schedule),
+      if (widget.transferData['reason']?.isNotEmpty == true)
+        _buildDetailRow('Motif', widget.transferData['reason'], theme, Icons.note),
     ]);
     
     return details;
   }
 
-  Widget _buildDetailRow(String label, String value, ThemeData theme) {
+  Widget _buildDetailRow(String label, String value, ThemeData theme, IconData icon) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Icon(icon, size: 20, color: theme.primaryColor.withOpacity(0.7)),
+          const SizedBox(width: 12),
           SizedBox(
-            width: 100,
+            width: 120,
             child: Text(
               label,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                color: theme.colorScheme.onSurface.withOpacity(0.7),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -242,6 +279,7 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
               value,
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w600,
+                color: theme.colorScheme.onSurface,
               ),
             ),
           ),
@@ -256,41 +294,63 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
     final total = amount + fees;
     
     return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Frais de transfert',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            
-            _buildDetailRow('Montant', '${amount.toStringAsFixed(0)} XAF', theme),
-            _buildDetailRow('Frais', '${fees.toStringAsFixed(0)} XAF', theme),
-            
-            const Divider(),
-            
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                Icon(Icons.calculate, color: theme.primaryColor, size: 24),
+                const SizedBox(width: 12),
                 Text(
-                  'Total à débiter',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  '${total.toStringAsFixed(0)} XAF',
-                  style: theme.textTheme.titleMedium?.copyWith(
+                  'Récapitulatif financier',
+                  style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: theme.primaryColor,
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 20),
+            
+            _buildFinancialRow('Montant du transfert', amount, theme),
+            _buildFinancialRow('Frais de service', fees, theme),
+            
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Divider(thickness: 1),
+            ),
+            
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: theme.primaryColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: theme.primaryColor.withOpacity(0.2)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Total à débiter',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: theme.primaryColor,
+                    ),
+                  ),
+                  Text(
+                    '${total.toStringAsFixed(0)} XAF',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: theme.primaryColor,
+                      fontSize: 20,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -301,53 +361,103 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
         .slideY(begin: 0.3, end: 0);
   }
 
+  Widget _buildFinancialRow(String label, double amount, ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Text(
+            '${amount.toStringAsFixed(0)} XAF',
+            style: theme.textTheme.bodyLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: theme.primaryColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPinSection(ThemeData theme) {
     return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Authentification',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              children: [
+                Icon(Icons.security, color: theme.primaryColor, size: 24),
+                const SizedBox(width: 12),
+                Text(
+                  'Authentification sécurisée',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.primaryColor,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             
             TextField(
               controller: _pinController,
               obscureText: true,
               keyboardType: TextInputType.number,
               maxLength: 4,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Code PIN',
-                hintText: 'Saisissez votre code PIN',
-                prefixIcon: Icon(Icons.lock_outline),
+                hintText: 'Saisissez votre code PIN à 4 chiffres',
+                prefixIcon: Icon(Icons.lock_outline, color: theme.primaryColor),
                 counterText: '',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: theme.primaryColor.withOpacity(0.3)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: theme.primaryColor, width: 2),
+                ),
               ),
             ),
             
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             
-            Row(
-              children: [
-                Icon(
-                  Icons.security,
-                  size: 16,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Votre code PIN est requis pour confirmer cette transaction',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue.withOpacity(0.2)),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 20,
+                    color: Colors.blue[700],
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Votre code PIN est requis pour sécuriser cette transaction',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: Colors.blue[700],
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
@@ -363,24 +473,72 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
       children: [
         SizedBox(
           width: double.infinity,
-          child: Consumer2<TransactionProvider, TransfertProvider>(
-            builder: (context, transactionProvider, transfertProvider, child) {
-              return LoadingButton(
-                onPressed: _isProcessing || transfertProvider.isTransferring ? null : _processTransfer,
-                isLoading: _isProcessing || transfertProvider.isTransferring,
-                child: const Text('Confirmer le transfert'),
+          child: Consumer3<TransactionProvider, TransfertProvider, CardProvider>(
+            builder: (context, transactionProvider, transfertProvider, cardProvider, child) {
+              final isLoading = _isProcessing || transfertProvider.isTransferring || cardProvider.isLoading;
+              
+              return Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: isLoading 
+                        ? [Colors.grey, Colors.grey] 
+                        : [Colors.green, Colors.green.shade600],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: (isLoading ? Colors.grey : Colors.green).withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: LoadingButton(
+                  onPressed: isLoading ? null : _processTransfer,
+                  isLoading: isLoading,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Text(
+                      'Confirmer le transfert',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
               );
             },
           ),
         ),
         
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         
         SizedBox(
           width: double.infinity,
           child: OutlinedButton(
             onPressed: _isProcessing ? null : () => Navigator.pop(context),
-            child: const Text('Modifier'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              side: BorderSide(
+                color: _isProcessing ? Colors.grey : Theme.of(context).primaryColor,
+                width: 1.5,
+              ),
+            ),
+            child: Text(
+              'Modifier les détails',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: _isProcessing ? Colors.grey : Theme.of(context).primaryColor,
+              ),
+            ),
           ),
         ),
       ],
@@ -395,9 +553,9 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
       case 'user':
         return Icons.person_outline;
       case 'bank':
-        return Icons.account_balance;
+        return Icons.account_balance_outlined;
       default:
-        return Icons.send;
+        return Icons.send_outlined;
     }
   }
 
@@ -413,17 +571,25 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
   }
 
   double _calculateFees(double amount) {
-    // Simulation du calcul des frais
-    if (amount <= 1000) return 50;
-    if (amount <= 5000) return 100;
-    if (amount <= 25000) return 250;
-    if (amount <= 100000) return 500;
-    return amount * 0.01; // 1% pour les gros montants
+    final transferType = widget.transferData['type'] as String;
+    
+    // Frais différentiés par type de transfert
+    if (transferType == 'user') {
+      // Frais pour transfert utilisateur
+      return amount * 0;
+    } else {
+      // Frais pour transfert bancaire (plus élevés)
+      if (amount <= 1000) return 100;
+      if (amount <= 5000) return 200;
+      if (amount <= 25000) return 500;
+      if (amount <= 100000) return 1000;
+      return amount * 0.015; // 1.5% pour les gros montants
+    }
   }
 
   String _getCurrentDateTime() {
     final now = DateTime.now();
-    return '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year} à ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+    return '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}';
   }
 
   Future<void> _processTransfer() async {
@@ -454,9 +620,11 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
       debugPrint('[TRANSFER] Erreur inattendue: $e');
       _showErrorDialog('Une erreur inattendue s\'est produite');
     } finally {
-      setState(() {
-        _isProcessing = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+        });
+      }
     }
   }
 
@@ -465,6 +633,7 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
     final transfertProvider = Provider.of<TransfertProvider>(context, listen: false);
     final prefs = await SharedPreferences.getInstance();
     final pin = prefs.getString('user_pin');
+    
     // Vérifier que l'utilisateur est connecté
     if (authProvider.currentUser == null) {
       _showErrorDialog('Vous devez être connecté pour effectuer un transfert');
@@ -540,93 +709,326 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
   }
 
   Future<void> _processBankTransfer() async {
-    // TODO: Implémenter le transfert bancaire
-    _showErrorDialog('Les transferts bancaires ne sont pas encore implémentés');
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final transfertProvider = Provider.of<TransfertProvider>(context, listen: false);
+    final cardProvider = Provider.of<CardProvider>(context, listen: false);
+    final prefs = await SharedPreferences.getInstance();
+    final pin = prefs.getString('user_pin');
+    
+    // Vérifier que l'utilisateur est connecté
+    if (authProvider.currentUser == null) {
+      _showErrorDialog('Vous devez être connecté pour effectuer un transfert');
+      return;
+    }
+
+    if (pin != _pinController.text.trim()) {
+      _showErrorDialog('Code PIN incorrect');
+      return;
+    }
+
+    // Récupérer les informations du transfert bancaire
+    final senderBankId = widget.transferData['senderBankId'] as String;
+    final receiverAccountNumber = widget.transferData['receiverAccountNumber'] as String;
+    final amount = widget.transferData['amount'] as double;
+
+    debugPrint('[BANK_TRANSFER] Début du transfert bancaire');
+    debugPrint('[BANK_TRANSFER] Banque expéditrice ID: $senderBankId');
+    debugPrint('[BANK_TRANSFER] Compte destinataire: $receiverAccountNumber');
+    debugPrint('[BANK_TRANSFER] Montant: $amount XAF');
+
+    try {
+      // Étape 1: Récupérer les informations de la carte destinataire
+      debugPrint('[BANK_TRANSFER] Récupération des informations de la carte destinataire...');
+      final cardInfo = await cardProvider.getCardBasicInfo(receiverAccountNumber);
+      
+      if (cardInfo == null) {
+        _showErrorDialog('Carte destinataire introuvable. Vérifiez le numéro de compte.');
+        return;
+      }
+      
+      debugPrint('[BANK_TRANSFER] Carte trouvée: ${cardInfo.holderName} - ${cardInfo.bankName}');
+
+      // Étape 2: Récupérer l'ID de la banque destinataire
+      // On utilise fetchBankAccountsByCardNumber pour obtenir plus d'informations
+
+      await cardProvider.fetchBankAccountsByCardNumber(receiverAccountNumber);
+      
+      if (cardProvider.userBankAccounts.isEmpty) {
+        _showErrorDialog('Impossible de récupérer les informations de la banque destinataire.');
+        return;
+      }
+
+      final receiverBankAccount = cardProvider.userBankAccounts.first;
+      final receiverBankId = receiverBankAccount.id;
+      
+      debugPrint('[BANK_TRANSFER] ID banque destinataire: $receiverBankId');
+
+      // Étape 3: Effectuer le transfert bancaire
+      debugPrint('[BANK_TRANSFER] Exécution du transfert bancaire...');
+      final success = await transfertProvider.makeBankTransfert(
+        senderBankId: int.parse(senderBankId),
+        receiverBankId: int.parse(receiverBankId),
+        amount: amount,
+      );
+
+      if (success) {
+        debugPrint('[BANK_TRANSFER] Transfert bancaire réussi! ID: ${transfertProvider.lastBankTransfertId}');
+        _showSuccessDialog();
+      } else {
+        debugPrint('[BANK_TRANSFER] Échec du transfert bancaire: ${transfertProvider.error?.message}');
+        _showErrorDialog(
+          transfertProvider.error?.message ?? 'Le transfert bancaire a échoué. Veuillez réessayer.'
+        );
+      }
+
+    } catch (e) {
+      debugPrint('[BANK_TRANSFER] Erreur lors du transfert bancaire: $e');
+      _showErrorDialog('Erreur lors du transfert bancaire: ${e.toString()}');
+    }
   }
 
-void _showErrorDialog(String message) {
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
-      title: Row(
-        children: const [
-          Icon(Icons.error_outline, color: Colors.red),
-          SizedBox(width: 10),
-          Text('Erreur', style: TextStyle(fontWeight: FontWeight.bold)),
-        ],
-      ),
-      content: Text(
-        message,
-        style: const TextStyle(fontSize: 16),
-      ),
-      actions: [
-        TextButton(
-          style: TextButton.styleFrom(
-            foregroundColor: Colors.white,
-            backgroundColor: Colors.redAccent,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Fermer'),
-        ),
-      ],
-    ),
-  );
-}
-
-
-  void _showSuccessDialog() {
+  void _showErrorDialog(String message) {
     showDialog(
       context: context,
-      barrierDismissible: false,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
         title: Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.green, size: 28),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.red[50],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(Icons.error_outline, color: Colors.red[600], size: 24),
+            ),
             const SizedBox(width: 12),
-            const Text('Transfert réussi'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Votre transfert a été effectué avec succès !'),
-            const SizedBox(height: 16),
-            Text(
-              'Montant: ${widget.transferData['amount'].toStringAsFixed(0)} XAF',
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            Text(
-              'Bénéficiaire: ${widget.transferData['recipient']}',
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            Text(
-              'Date: ${_getCurrentDateTime()}',
-              style: TextStyle(
-                fontSize: 12,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+            Expanded(
+              child: Text(
+                'Erreur de transfert', 
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red[700],
+                  fontSize: 18,
+                ),
               ),
             ),
           ],
         ),
+        content: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.red[50],
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            message,
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.red[800],
+              height: 1.4,
+            ),
+          ),
+        ),
         actions: [
-          TextButton(
-            onPressed: () {
-              // Fermer le dialog et retourner à l'écran principal
-              Navigator.pop(context); // Fermer le dialog
-              Navigator.pop(context); // Retourner à l'écran précédent
-              Navigator.pop(context); // Retourner au dashboard
-            },
-            child: const Text('Terminer'),
+          Container(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red[600],
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                'Fermer',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  void _showSuccessDialog() {
+    final transferType = widget.transferData['type'] as String;
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Column(
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: Colors.green[50],
+                borderRadius: BorderRadius.circular(40),
+                border: Border.all(color: Colors.green[200]!, width: 2),
+              ),
+              child: Icon(
+                Icons.check_circle,
+                color: Colors.green[600],
+                size: 40,
+              ),
+            )
+                .animate()
+                .scale(duration: 600.ms, curve: Curves.elasticOut)
+                .then(delay: 200.ms)
+                .shimmer(duration: 1000.ms, color: Colors.green.withOpacity(0.3)),
+            const SizedBox(height: 16),
+            Text(
+              'Transfert réussi !',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.green[700],
+                fontSize: 20,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        content: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.green[50],
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.green[200]!),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Votre ${transferType == 'user' ? 'transfert utilisateur' : 'transfert bancaire'} a été effectué avec succès !',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.green[800],
+                  fontWeight: FontWeight.w500,
+                  height: 1.4,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.green[200]!),
+                ),
+                child: Column(
+                  children: [
+                    _buildSuccessDetailRow(
+                      'Montant',
+                      '${widget.transferData['amount'].toStringAsFixed(0)} XAF',
+                      Icons.money,
+                      Colors.green[700]!,
+                    ),
+                    const SizedBox(height: 12),
+                    if (transferType == 'user')
+                      _buildSuccessDetailRow(
+                        'Bénéficiaire',
+                        widget.transferData['recipient'],
+                        Icons.person,
+                        Colors.blue[700]!,
+                      )
+                    else
+                      _buildSuccessDetailRow(
+                        'Compte destinataire',
+                        widget.transferData['receiverAccountNumber'],
+                        Icons.credit_card,
+                        Colors.blue[700]!,
+                      ),
+                    const SizedBox(height: 12),
+                    _buildSuccessDetailRow(
+                      'Date et heure',
+                      _getCurrentDateTime(),
+                      Icons.schedule,
+                      Colors.grey[700]!,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          Container(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green[600],
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+              onPressed: () {
+                // Fermer le dialog et retourner aux écrans précédents
+                Navigator.pop(context); // Fermer le dialog
+                Navigator.pop(context); // Retourner à l'écran de transfert
+                Navigator.pop(context); // Retourner au dashboard
+              },
+              child: const Text(
+                'Retour au tableau de bord',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSuccessDetailRow(String label, String value, IconData icon, Color iconColor) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: iconColor),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

@@ -99,20 +99,7 @@ class BankDetailsScreen extends StatelessWidget {
                   ),
                 ),
                 child: Center(
-                  child: bank.logoUrl.isNotEmpty
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(38),
-                          child: Image.network(
-                            bank.logoUrl,
-                            width: 76,
-                            height: 76,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return _buildFallbackLogo(theme);
-                            },
-                          ),
-                        )
-                      : _buildFallbackLogo(theme),
+                  child: _buildFallbackLogo(theme),
                 ),
               ),
             ),

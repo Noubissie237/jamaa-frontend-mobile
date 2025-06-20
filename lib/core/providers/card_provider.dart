@@ -5,14 +5,95 @@ import 'dart:convert';
 import '../models/bank_account.dart';
 import '../models/bank.dart';
 
+// Classe pour les informations de base de la carte
+class CardBasicInfo {
+  final String id;
+  final String holderName;
+  final String bankName;
+
+  CardBasicInfo({
+    required this.id,
+    required this.holderName,
+    required this.bankName,
+  });
+
+  factory CardBasicInfo.fromJson(Map<String, dynamic> json) {
+    return CardBasicInfo(
+      id: json['id']?.toString() ?? '',
+      holderName: json['holderName']?.toString() ?? '',
+      bankName: json['bankName']?.toString() ?? '',
+    );
+  }
+}
+
 class CardProvider extends ChangeNotifier {
   List<BankAccount> _userBankAccounts = [];
   bool _isLoading = false;
   String? _error;
+  CardBasicInfo? _cardBasicInfo; // Nouvelle variable pour stocker les infos de base
 
   List<BankAccount> get userBankAccounts => _userBankAccounts;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  CardBasicInfo? get cardBasicInfo => _cardBasicInfo; // Nouveau getter
+
+  // Nouvelle méthode pour récupérer les informations de base d'une carte
+  Future<CardBasicInfo?> getCardBasicInfo(String cardNumber) async {
+    _isLoading = true;
+    _error = null;
+    _cardBasicInfo = null;
+    notifyListeners();
+
+    try {
+      final url = Uri.parse(ApiConstants.cardServiceUrl);
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'query': '''
+            query {
+              cardByNumber(cardNumber: "$cardNumber") {
+                id,
+              }
+            }
+          '''
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        
+        if (data['errors'] != null) {
+          print('Erreur GraphQL pour les informations de carte: ${data['errors']}');
+          _error = 'Erreur GraphQL: ${data['errors']}';
+          return null;
+        } else {
+          final cardData = data['data']['cardByNumber'];
+          if (cardData != null) {
+            _cardBasicInfo = CardBasicInfo.fromJson(cardData);
+            print('Informations de carte récupérées: ${_cardBasicInfo?.holderName} - ${_cardBasicInfo?.bankName}');
+            return _cardBasicInfo;
+          } else {
+            _error = 'Aucune carte trouvée avec ce numéro';
+            return null;
+          }
+        }
+      } else {
+        final errorMessage = 'Erreur réseau: ${response.statusCode}';
+        print(errorMessage);
+        _error = errorMessage;
+        return null;
+      }
+    } catch (e) {
+      final errorMessage = 'Erreur lors de la récupération des informations de carte: $e';
+      print(errorMessage);
+      _error = errorMessage;
+      return null;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
   // Méthode pour récupérer les comptes bancaires de l'utilisateur
   Future<void> fetchUserBankAccounts(String userId) async {
@@ -57,7 +138,6 @@ class CardProvider extends ChangeNotifier {
               accountNumber: account['cardNumber']?.toString() ?? '',
               accountType: 'Compte Courant',
               balance: _parseBalance(account['currentBalance']),
-              bankLogo: _getBankLogo(account['bankName']?.toString()),
               linkedAt: _parseDate(account['createdAt']),
               bankId: account['bankId']?.toString() ?? '',
             );
@@ -94,7 +174,7 @@ class CardProvider extends ChangeNotifier {
         body: jsonEncode({
           'query': '''
             query GetCardByNumber {
-              cardByNumber(cardNumber: $cardNumber) {
+              cardByNumber(cardNumber: "$cardNumber") {
                 id
                 bankName
                 cardNumber
@@ -123,7 +203,6 @@ class CardProvider extends ChangeNotifier {
               accountNumber: cardData['cardNumber']?.toString() ?? '',
               accountType: 'Compte Courant',
               balance: _parseBalance(cardData['currentBalance']),
-              bankLogo: _getBankLogo(cardData['bankName']?.toString()),
               linkedAt: _parseDate(cardData['createdAt']),
               bankId: cardData['bankId']?.toString() ?? '',
             );
@@ -199,6 +278,7 @@ class CardProvider extends ChangeNotifier {
   // Méthode pour vider le cache des comptes
   void clearAccountData() {
     _userBankAccounts = [];
+    _cardBasicInfo = null; // Effacer aussi les infos de carte
     _error = null;
     notifyListeners();
   }
@@ -214,30 +294,6 @@ class CardProvider extends ChangeNotifier {
       return date != null ? DateTime.parse(date.toString()) : DateTime.now();
     } catch (e) {
       return DateTime.now();
-    }
-  }
-
-  String _getBankLogo(String? bankName) {
-    if (bankName == null) return 'assets/images/default_logo.png';
-    
-    switch (bankName.toLowerCase()) {
-      case 'afriland':
-      case 'afriland first bank':
-        return 'assets/images/afriland_logo.png';
-      case 'uba':
-      case 'uba cameroun':
-        return 'assets/images/uba_logo.png';
-      case 'bicec':
-        return 'assets/images/bicec_logo.png';
-      case 'sgbc':
-        return 'assets/images/sgbc_logo.png';
-      case 'ecobank':
-        return 'assets/images/ecobank_logo.png';
-      case 'cca':
-      case 'cca bank':
-        return 'assets/images/cca_logo.png';
-      default:
-        return 'assets/images/default_logo.png';
     }
   }
 }

@@ -274,29 +274,7 @@ class _AvailableBanksSectionState extends State<AvailableBanksSection> {
         borderRadius: BorderRadius.circular(18),
       ),
       child: Center(
-        child: bank.logoUrl.isNotEmpty
-            ? ClipRRect(
-                borderRadius: BorderRadius.circular(18),
-                child: Image.network(
-                  bank.logoUrl,
-                  width: 24,
-                  height: 24,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Text(
-                      bank.name.isNotEmpty 
-                          ? bank.name.substring(0, 1).toUpperCase()
-                          : '?',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.green,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    );
-                  },
-                ),
-              )
-            : Text(
+        child: Text(
                 bank.name.isNotEmpty 
                     ? bank.name.substring(0, 1).toUpperCase()
                     : '?',

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:jamaa_frontend_mobile/presentation/widgets/build_balance_card.dart';
-import 'package:jamaa_frontend_mobile/presentation/widgets/build_quick_amount.dart';
-import 'package:jamaa_frontend_mobile/presentation/widgets/proceed_to_confirmation.dart';
-import '../../widgets/custom_text_field.dart';
+import 'package:provider/provider.dart';
+import 'package:jamaa_frontend_mobile/presentation/widgets/build_bank_transfer_tab.dart';
+import 'package:jamaa_frontend_mobile/presentation/widgets/build_user_transfer_tab.dart';
+import 'package:jamaa_frontend_mobile/core/providers/card_provider.dart';
+import 'package:jamaa_frontend_mobile/core/providers/auth_provider.dart'; // Ajoutez cet import
 
 class TransferScreen extends StatefulWidget {
   const TransferScreen({super.key});
@@ -28,20 +27,18 @@ class _TransferScreenState extends State<TransferScreen>
   final _bankAmountController = TextEditingController();
   final _bankReasonController = TextEditingController();
   
-  String? _selectedBank;
-
-  final List<String> _banks = [
-    'Afriland First Bank',
-    'BICEC',
-    'UBA Cameroun',
-    'Ecobank',
-    'SGBC',
-  ];
+  String? _selectedBankId; // Changé pour stocker l'ID de la banque
+  String? _selectedBankName; // Pour afficher le nom de la banque
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    
+    // Charger les comptes bancaires de l'utilisateur au démarrage
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadUserBankAccounts();
+    });
   }
 
   @override
@@ -56,10 +53,57 @@ class _TransferScreenState extends State<TransferScreen>
     super.dispose();
   }
 
+  // Méthode pour charger les comptes bancaires de l'utilisateur
+  Future<void> _loadUserBankAccounts() async {
+    final cardProvider = Provider.of<CardProvider>(context, listen: false);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    
+    // Vérifier que l'utilisateur est connecté
+    if (authProvider.currentUser == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Vous devez être connecté pour voir vos comptes bancaires'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+    
+    // Récupérer l'ID réel de l'utilisateur connecté
+    final String userId = authProvider.currentUser!.id.toString(); // ou .id selon votre modèle User
+    
+    debugPrint('[TRANSFER] Chargement des comptes bancaires pour l\'utilisateur: $userId');
+    
+    await cardProvider.fetchUserBankAccounts(userId);
+    
+    if (cardProvider.error != null) {
+      // Afficher un message d'erreur si le chargement échoue
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors du chargement des banques: ${cardProvider.error}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } else {
+      debugPrint('[TRANSFER] ${cardProvider.userBankAccounts.length} comptes bancaires chargés');
+    }
+  }
+
+  // Méthode pour gérer la sélection d'une banque
+  void _onBankSelected(String? bankId, String? bankName) {
+    setState(() {
+      _selectedBankId = bankId;
+      _selectedBankName = bankName;
+    });
+    debugPrint('[TRANSFER] Banque sélectionnée: $bankName (ID: $bankId)');
+  }
+
   @override
   Widget build(BuildContext context) {
-    // final theme = Theme.of(context);
-    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Transférer'),
@@ -78,240 +122,92 @@ class _TransferScreenState extends State<TransferScreen>
           ],
         ),
       ),
-      body: Form(
-        key: _formKey,
-        child: TabBarView(
-          controller: _tabController,
-          children: [
-            _buildUserTransferTab(),
-            _buildBankTransferTab(),
-          ],
-        ),
+      body: Consumer2<CardProvider, AuthProvider>(
+        builder: (context, cardProvider, authProvider, child) {
+          // Vérifier si l'utilisateur est connecté
+          if (authProvider.currentUser == null) {
+            return const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.person_off, size: 64, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text(
+                    'Vous devez être connecté pour effectuer un transfert',
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return Form(
+            key: _formKey,
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                buildUserTransferTab(
+                  context, 
+                  _recipientController, 
+                  _amountController, 
+                  _reasonController, 
+                  _bankAccountController, 
+                  _bankAmountController, 
+                  _bankReasonController, 
+                  _selectedBankName, // Passer le nom de la banque pour l'affichage
+                  _formKey
+                ),
+                buildBankTransferTab(
+                  context, 
+                  _bankAccountController, 
+                  _bankAmountController, 
+                  _bankReasonController, 
+                  _selectedBankName, // Passer le nom pour l'affichage
+                  _formKey, 
+                  cardProvider.userBankAccounts, // Passer la liste des comptes bancaires
+                  _onBankSelected, // Callback pour la sélection
+                  _recipientController, 
+                  _amountController, 
+                  _reasonController,
+                  selectedBankId: _selectedBankId, // Passer l'ID sélectionné
+                  isLoading: cardProvider.isLoading, // État de chargement
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+      // Bouton de rafraîchissement optionnel
+      floatingActionButton: Consumer2<CardProvider, AuthProvider>(
+        builder: (context, cardProvider, authProvider, child) {
+          // Ne pas afficher le bouton si l'utilisateur n'est pas connecté
+          if (authProvider.currentUser == null) {
+            return const SizedBox.shrink();
+          }
+
+          if (cardProvider.isLoading) {
+            return FloatingActionButton(
+              onPressed: null,
+              backgroundColor: Colors.grey,
+              child: const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              ),
+            );
+          }
+          
+          return FloatingActionButton(
+            onPressed: _loadUserBankAccounts,
+            tooltip: 'Actualiser les banques',
+            child: const Icon(Icons.refresh),
+          );
+        },
       ),
     );
   }
-
-  Widget _buildUserTransferTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Solde disponible
-          buildBalanceCard(),
-          
-          const SizedBox(height: 24),
-          
-          // Bénéficiaire
-          Text(
-            'Bénéficiaire',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          )
-              .animate()
-              .fadeIn(delay: 200.ms, duration: 600.ms),
-          
-          const SizedBox(height: 12),
-          
-          CustomTextField(
-            controller: _recipientController,
-            label: 'Téléphone',
-            hint: 'ex: 690232120',
-            prefixIcon: Icons.person_outline,
-            keyboardType: TextInputType.number,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Veuillez saisir le téléphone du bénéficiaire';
-              }
-              return null;
-            },
-          )
-              .animate()
-              .fadeIn(delay: 300.ms, duration: 600.ms)
-              .slideX(begin: -0.2, end: 0),
-          
-          const SizedBox(height: 24),
-          
-          // Montant
-          Text(
-            'Montant',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          )
-              .animate()
-              .fadeIn(delay: 400.ms, duration: 600.ms),
-          
-          const SizedBox(height: 12),
-          
-          CustomTextField(
-            controller: _amountController,
-            label: 'Montant (XAF)',
-            prefixIcon: Icons.money,
-            keyboardType: TextInputType.number,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-            ],
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Veuillez saisir un montant';
-              }
-              final amount = int.tryParse(value);
-              if (amount == null || amount <= 0) {
-                return 'Montant invalide';
-              }
-              if (amount < 100) {
-                return 'Montant minimum : 100 XAF';
-              }
-              return null;
-            },
-          )
-              .animate()
-              .fadeIn(delay: 500.ms, duration: 600.ms)
-              .slideX(begin: 0.2, end: 0),
-          
-          const SizedBox(height: 16),
-          
-          // Montants rapides
-          buildQuickAmounts(context, _amountController),
-          
-          const SizedBox(height: 24),
-          
-          // Bouton continuer
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => proceedToConfirmation('user', context, _formKey, _recipientController, _amountController, _reasonController, _bankAccountController, _bankAmountController, _bankReasonController, _selectedBank),
-              child: const Text('Continuer'),
-            ),
-          )
-              .animate()
-              .fadeIn(delay: 800.ms, duration: 600.ms)
-              .slideY(begin: 0.3, end: 0),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBankTransferTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Solde disponible
-          buildBalanceCard(),
-          
-          const SizedBox(height: 24),
-          
-          // Banque de destination
-          Text(
-            'Banque de destination',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          
-          const SizedBox(height: 12),
-          
-          DropdownButtonFormField<String>(
-            value: _selectedBank,
-            decoration: const InputDecoration(
-              labelText: 'Sélectionner une banque',
-              prefixIcon: Icon(Icons.account_balance),
-            ),
-            items: _banks.map((bank) {
-              return DropdownMenuItem(
-                value: bank,
-                child: Text(bank),
-              );
-            }).toList(),
-            onChanged: (value) {
-              setState(() {
-                _selectedBank = value;
-              });
-            },
-            validator: (value) {
-              if (value == null) {
-                return 'Veuillez sélectionner une banque';
-              }
-              return null;
-            },
-          ),
-          
-          const SizedBox(height: 16),
-          
-          // Numéro de compte
-          CustomTextField(
-            controller: _bankAccountController,
-            label: 'Numéro de compte',
-            prefixIcon: Icons.credit_card,
-            keyboardType: TextInputType.number,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Veuillez saisir le numéro de compte';
-              }
-              if (value.length < 10) {
-                return 'Numéro de compte invalide';
-              }
-              return null;
-            },
-          ),
-          
-          const SizedBox(height: 24),
-          
-          // Montant
-          Text(
-            'Montant',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          
-          const SizedBox(height: 12),
-          
-          CustomTextField(
-            controller: _bankAmountController,
-            label: 'Montant (XAF)',
-            prefixIcon: Icons.money,
-            keyboardType: TextInputType.number,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-            ],
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Veuillez saisir un montant';
-              }
-              final amount = int.tryParse(value);
-              if (amount == null || amount <= 0) {
-                return 'Montant invalide';
-              }
-              if (amount < 1000) {
-                return 'Montant minimum : 1000 XAF';
-              }
-              return null;
-            },
-          ),
-          
-          const SizedBox(height: 16),
-          
-          // Montants rapides
-          buildQuickAmounts(context, _bankAmountController),
-          
-          const SizedBox(height: 24),
-          
-          // Bouton continuer
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => proceedToConfirmation('bank', context, _formKey, _recipientController, _amountController, _reasonController, _bankAccountController, _bankAmountController, _bankReasonController, _selectedBank),
-              child: const Text('Continuer'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
 }

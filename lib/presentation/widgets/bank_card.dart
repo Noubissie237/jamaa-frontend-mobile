@@ -20,19 +20,7 @@ class BankCard extends StatelessWidget {
   });
 
   Color _getBankColor() {
-    // Couleurs différentes selon la banque
-    switch (bankAccount.bankName.toLowerCase()) {
-      case 'afriland':
-        return const Color(0xFF1565C0);
-      case 'uba':
-        return const Color(0xFFD32F2F);
-      case 'bicec':
-        return const Color(0xFF388E3C);
-      case 'sgbc':
-        return const Color(0xFFE53935);
-      default:
-        return const Color(0xFF424242);
-    }
+    return const Color(0xFF424242);
   }
 
   @override

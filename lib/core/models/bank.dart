@@ -2,7 +2,6 @@ class Bank {
   final String id;
   final String name;
   final String slogan;
-  final String logoUrl;
   final double minimumBalance;
   final double withdrawFees;
   final double internalTransferFees;
@@ -14,7 +13,6 @@ class Bank {
     required this.id,
     required this.name,
     required this.slogan,
-    required this.logoUrl,
     required this.minimumBalance,
     required this.withdrawFees,
     required this.internalTransferFees,
@@ -28,7 +26,6 @@ class Bank {
       id: json['id'],
       name: json['name'],
       slogan: json['slogan'],
-      logoUrl: json['logoUrl'],
       minimumBalance: (json['minimumBalance'] as num).toDouble(),
       withdrawFees: (json['withdrawFees'] as num).toDouble(),
       internalTransferFees: (json['internalTransferFees'] as num).toDouble(),

@@ -32,6 +32,7 @@ class TransfertProvider extends ChangeNotifier {
   bool _isTransferring = false;
   TransfertError? _error;
   Transfert? _lastTransfert;
+  String? _lastBankTransfertId; // Pour stocker l'ID du dernier transfert bancaire
 
   // Getters
   List<Transfert> get transferts => _transferts;
@@ -39,6 +40,7 @@ class TransfertProvider extends ChangeNotifier {
   bool get isTransferring => _isTransferring;
   TransfertError? get error => _error;
   Transfert? get lastTransfert => _lastTransfert;
+  String? get lastBankTransfertId => _lastBankTransfertId;
   bool get hasError => _error != null;
   bool get hasData => _transferts.isNotEmpty;
 
@@ -107,6 +109,65 @@ class TransfertProvider extends ChangeNotifier {
     }
   }
 
+  // Méthode pour effectuer un transfert bancaire
+  Future<bool> makeBankTransfert({
+    required int senderBankId,
+    required int receiverBankId,
+    required double amount,
+  }) async {
+    _setTransferring(true);
+    _clearError();
+
+    try {
+      const String endpoint = ApiConstants.transfertServiceUrl;
+      final String mutation = '''
+        mutation {
+          makeBankTransfert(
+            idSenderBank: $senderBankId,
+            idReceiverBank: $receiverBankId,
+            amount: $amount
+          ) {
+            id
+          }
+        }
+      ''';
+
+      final response = await _makeGraphQLRequest(endpoint, mutation);
+      
+      if (!response.isSuccess) {
+        _setError(response.error!);
+        return false;
+      }
+
+      final transfertData = response.data?['data']?['makeBankTransfert'];
+      if (transfertData == null) {
+        _setError(TransfertError(
+          message: 'Échec du transfert bancaire',
+          details: 'Aucune donnée de transfert bancaire retournée',
+          type: 'BANK_TRANSFER_FAILED',
+        ));
+        return false;
+      }
+
+      // Stocker l'ID du transfert bancaire
+      _lastBankTransfertId = transfertData['id']?.toString();
+      
+      debugPrint('[TRANSFERT] Transfert bancaire réussi: ID ${_lastBankTransfertId} - ${amount} XAF');
+      return true;
+
+    } catch (e) {
+      debugPrint('[TRANSFERT] Erreur lors du transfert bancaire: $e');
+      _setError(TransfertError(
+        message: 'Erreur lors du transfert bancaire',
+        details: e.toString(),
+        type: 'BANK_TRANSFER_ERROR',
+      ));
+      return false;
+    } finally {
+      _setTransferring(false);
+    }
+  }
+
   // Méthode générique pour les requêtes GraphQL
   Future<ApiResult<Map<String, dynamic>>> _makeGraphQLRequest(
     String endpoint, 
@@ -117,7 +178,6 @@ class TransfertProvider extends ChangeNotifier {
         Uri.parse(endpoint),
         headers: {
           'Content-Type': 'application/json',
-          // Ajouter d'autres headers si nécessaire (auth, etc.)
         },
         body: jsonEncode({'query': query}),
       );
@@ -171,6 +231,7 @@ class TransfertProvider extends ChangeNotifier {
   void clearData() {
     _transferts = [];
     _lastTransfert = null;
+    _lastBankTransfertId = null;
     _error = null;
     notifyListeners();
   }

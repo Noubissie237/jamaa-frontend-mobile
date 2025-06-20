@@ -173,7 +173,6 @@ class DashboardProvider extends ChangeNotifier {
           accountNumber: account['cardNumber']?.toString() ?? '',
           accountType: 'Compte Courant',
           balance: _parseBalance(account['currentBalance']),
-          bankLogo: _getBankLogo(account['bankName']?.toString()),
           linkedAt: _parseDate(account['createdAt']),
           bankId: account['bankId']?.toString() ?? '',
         );
@@ -270,23 +269,6 @@ class DashboardProvider extends ChangeNotifier {
       return date != null ? DateTime.parse(date.toString()) : DateTime.now();
     } catch (e) {
       return DateTime.now();
-    }
-  }
-
-  String _getBankLogo(String? bankName) {
-    if (bankName == null) return 'assets/images/default_logo.png';
-    
-    switch (bankName.toLowerCase()) {
-      case 'afriland':
-        return 'assets/images/afriland_logo.png';
-      case 'uba':
-        return 'assets/images/uba_logo.png';
-      case 'bicec':
-        return 'assets/images/bicec_logo.png';
-      case 'sgbc':
-        return 'assets/images/sgbc_logo.png';
-      default:
-        return 'assets/images/default_logo.png';
     }
   }
 

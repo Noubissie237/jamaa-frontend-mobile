@@ -297,28 +297,7 @@ class _AddBankScreenState extends State<AddBankScreen> {
                             color: Theme.of(context).primaryColor.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(25),
                           ),
-                          child: bank.logoUrl.isNotEmpty
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(25),
-                                  child: Image.network(
-                                    bank.logoUrl,
-                                    width: 50,
-                                    height: 50,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Center(
-                                        child: Text(
-                                          bank.name.substring(0, 1).toUpperCase(),
-                                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                            color: Theme.of(context).primaryColor,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                )
-                              : Center(
+                          child: Center(
                                   child: Text(
                                     bank.name.substring(0, 1).toUpperCase(),
                                     style: Theme.of(context).textTheme.titleLarge?.copyWith(

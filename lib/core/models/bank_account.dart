@@ -5,7 +5,6 @@ class BankAccount {
   final String accountType;
   final double balance;
   final String currency;
-  final String bankLogo;
   final bool isActive;
   final DateTime linkedAt;
   final String bankId;
@@ -17,7 +16,6 @@ class BankAccount {
     required this.accountType,
     required this.balance,
     this.currency = 'XAF',
-    required this.bankLogo,
     this.isActive = true,
     required this.linkedAt,
     required this.bankId,
@@ -41,7 +39,6 @@ class BankAccount {
       'accountType': accountType,
       'balance': balance,
       'currency': currency,
-      'bankLogo': bankLogo,
       'isActive': isActive,
       'linkedAt': linkedAt.toIso8601String(),
       'bankId': bankId,
@@ -56,7 +53,6 @@ class BankAccount {
       accountType: json['accountType'],
       balance: json['balance'].toDouble(),
       currency: json['currency'] ?? 'XAF',
-      bankLogo: json['bankLogo'],
       isActive: json['isActive'] ?? true,
       linkedAt: DateTime.parse(json['linkedAt']),
       bankId: json['bankId'],
