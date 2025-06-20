@@ -5,6 +5,7 @@ import 'package:jamaa_frontend_mobile/presentation/widgets/build_accounts_summar
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jamaa_frontend_mobile/core/providers/bank_provider.dart';
+import 'package:jamaa_frontend_mobile/core/providers/card_provider.dart'; // Nouveau import
 import '../../../core/providers/dashboard_provider.dart';
 
 class BanksScreen extends StatefulWidget {
@@ -19,10 +20,15 @@ class _BanksScreenState extends State<BanksScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final userId = context.read<AuthProvider>().currentUser!.id.toString();
-      context.read<DashboardProvider>().loadDashboardData(userId: userId);
-      // Utiliser loadAvailableBanks au lieu de fetchBanks pour charger les banques et les comptes utilisateur
-      context.read<BankProvider>().loadAvailableBanks(userId as int);
+      final userId = context.read<AuthProvider>().currentUser!.id;
+      final userIdString = userId.toString();
+      
+      // Charger les données du dashboard
+      context.read<DashboardProvider>().loadDashboardData(userId: userIdString);
+      
+      // Charger les banques et les comptes utilisateur en parallèle
+      context.read<BankProvider>().fetchBanks();
+      context.read<CardProvider>().fetchUserBankAccounts(userIdString);
     });
   }
 
@@ -41,17 +47,17 @@ class _BanksScreenState extends State<BanksScreen> {
           ),
         ],
       ),
-      body: Consumer2<DashboardProvider, BankProvider>(
-        builder: (context, dashboardProvider, bankProvider, child) {
-          // Vérifier l'état de chargement des deux providers
-          if (dashboardProvider.isLoading || bankProvider.isLoadingAvailable) {
+      body: Consumer3<DashboardProvider, BankProvider, CardProvider>(
+        builder: (context, dashboardProvider, bankProvider, cardProvider, child) {
+          // Vérifier l'état de chargement des trois providers
+          if (dashboardProvider.isLoading || bankProvider.isLoading || cardProvider.isLoading) {
             return const Center(
               child: CircularProgressIndicator(),
             );
           }
 
-          // Vérifier les erreurs des deux providers
-          final error = dashboardProvider.error ?? bankProvider.error;
+          // Vérifier les erreurs des trois providers
+          final error = dashboardProvider.error ?? bankProvider.error ?? cardProvider.error;
           if (error != null) {
             return Center(
               child: Column(
@@ -69,7 +75,7 @@ class _BanksScreenState extends State<BanksScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    dashboardProvider.error?.message ?? bankProvider.error ?? 'Erreur inconnue',
+                    dashboardProvider.error?.message ?? bankProvider.error ?? cardProvider.error ?? 'Erreur inconnue',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
@@ -78,9 +84,12 @@ class _BanksScreenState extends State<BanksScreen> {
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () {
-                      final userId = context.read<AuthProvider>().currentUser!.id.toString();
-                      dashboardProvider.loadDashboardData(userId: userId);
-                      bankProvider.loadAvailableBanks(userId as int);
+                      final userId = context.read<AuthProvider>().currentUser!.id;
+                      final userIdString = userId.toString();
+                      
+                      dashboardProvider.loadDashboardData(userId: userIdString);
+                      bankProvider.fetchBanks();
+                      cardProvider.fetchUserBankAccounts(userIdString);
                     },
                     child: const Text('Réessayer'),
                   ),
@@ -91,10 +100,13 @@ class _BanksScreenState extends State<BanksScreen> {
 
           return RefreshIndicator(
             onRefresh: () async {
-              final userId = context.read<AuthProvider>().currentUser!.id.toString();
+              final userId = context.read<AuthProvider>().currentUser!.id;
+              final userIdString = userId.toString();
+              
               await Future.wait([
-                dashboardProvider.refreshBalance(userId: userId),
-                bankProvider.refreshAvailableBanks(userId as int),
+                dashboardProvider.refreshBalance(userId: userIdString),
+                bankProvider.refreshBanks(),
+                cardProvider.refreshUserBankAccounts(userIdString),
               ]);
             },
             child: SingleChildScrollView(
@@ -109,13 +121,13 @@ class _BanksScreenState extends State<BanksScreen> {
                   const SizedBox(height: 32),
                   
                   // Liste des comptes bancaires (si vous voulez l'afficher)
-                  if (bankProvider.hasUserBankAccounts) ...[
-                    _buildUserBankAccounts(bankProvider),
+                  if (cardProvider.hasUserBankAccounts) ...[
+                    _buildUserBankAccounts(cardProvider),
                     const SizedBox(height: 32),
                   ],
                   
                   // Banques disponibles
-                  _buildAvailableBanks(bankProvider),
+                  _buildAvailableBanks(bankProvider, cardProvider),
                 ],
               ),
             ),
@@ -125,7 +137,7 @@ class _BanksScreenState extends State<BanksScreen> {
     );
   }
 
-  Widget _buildUserBankAccounts(BankProvider bankProvider) {
+  Widget _buildUserBankAccounts(CardProvider cardProvider) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -139,9 +151,9 @@ class _BanksScreenState extends State<BanksScreen> {
         ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: bankProvider.userBankAccounts.length,
+          itemCount: cardProvider.userBankAccounts.length,
           itemBuilder: (context, index) {
-            final account = bankProvider.userBankAccounts[index];
+            final account = cardProvider.userBankAccounts[index];
             return Card(
               margin: const EdgeInsets.only(bottom: 8),
               child: ListTile(
@@ -177,9 +189,9 @@ class _BanksScreenState extends State<BanksScreen> {
     );
   }
 
-  Widget _buildAvailableBanks(BankProvider bankProvider) {
-    // Utiliser availableBanks au lieu de banks
-    final availableBanks = bankProvider.availableBanks;
+  Widget _buildAvailableBanks(BankProvider bankProvider, CardProvider cardProvider) {
+    // Obtenir les banques disponibles en utilisant les deux providers
+    final availableBanks = cardProvider.getAvailableBanks(bankProvider.banks);
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -200,7 +212,7 @@ class _BanksScreenState extends State<BanksScreen> {
             ? 'Vous êtes connecté à toutes les banques partenaires disponibles'
             : 'Connectez vos comptes de ces banques partenaires',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
           ),
         )
             .animate()

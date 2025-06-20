@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:jamaa_frontend_mobile/core/models/bank.dart';
 import 'package:jamaa_frontend_mobile/core/providers/auth_provider.dart';
 import 'package:jamaa_frontend_mobile/core/providers/bank_provider.dart';
+import 'package:jamaa_frontend_mobile/core/providers/card_provider.dart'; // Ajouté
+import 'package:jamaa_frontend_mobile/presentation/widgets/build_verification_step.dart';
 import 'package:jamaa_frontend_mobile/presentation/widgets/loading_button.dart';
 import 'package:provider/provider.dart';
 
@@ -33,10 +35,15 @@ class _AddBankScreenState extends State<AddBankScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final bankProvider = Provider.of<BankProvider>(context, listen: false);
+      final cardProvider = Provider.of<CardProvider>(context, listen: false);
       
-      final userId = authProvider.currentUser?.id; // userId est maintenant un int?
+      final userId = authProvider.currentUser?.id;
       if (userId != null) {
-        bankProvider.loadAvailableBanks(userId); // Passer directement l'int
+        // Charger d'abord toutes les banques
+        bankProvider.fetchBanks().then((_) {
+          // Puis charger les comptes de l'utilisateur
+          cardProvider.fetchUserBankAccounts(userId.toString());
+        });
       }
     });
   }
@@ -61,10 +68,10 @@ class _AddBankScreenState extends State<AddBankScreen> {
           ),
         ],
       ),
-      body: Consumer<BankProvider>(
-        builder: (context, bankProvider, child) {
-          // Afficher un loader si les banques sont en cours de chargement
-          if (bankProvider.isLoadingAvailable) {
+      body: Consumer2<BankProvider, CardProvider>(
+        builder: (context, bankProvider, cardProvider, child) {
+          // Afficher un loader si les données sont en cours de chargement
+          if (bankProvider.isLoading || cardProvider.isLoading) {
             return const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -78,7 +85,7 @@ class _AddBankScreenState extends State<AddBankScreen> {
           }
 
           // Afficher une erreur si il y en a une
-          if (bankProvider.error != null) {
+          if (bankProvider.error != null || cardProvider.error != null) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -95,7 +102,7 @@ class _AddBankScreenState extends State<AddBankScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    bankProvider.error!,
+                    bankProvider.error ?? cardProvider.error ?? 'Erreur inconnue',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.error,
@@ -112,8 +119,11 @@ class _AddBankScreenState extends State<AddBankScreen> {
             );
           }
 
+          // Calculer les banques disponibles
+          final availableBanks = cardProvider.getAvailableBanks(bankProvider.banks);
+
           // Afficher un message si aucune banque n'est disponible
-          if (bankProvider.availableBanks.isEmpty) {
+          if (availableBanks.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -121,7 +131,7 @@ class _AddBankScreenState extends State<AddBankScreen> {
                   Icon(
                     Icons.account_balance_outlined,
                     size: 64,
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -133,7 +143,7 @@ class _AddBankScreenState extends State<AddBankScreen> {
                     'Vous êtes déjà inscrit à toutes les banques disponibles ou aucune banque n\'est configurée.',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -204,12 +214,12 @@ class _AddBankScreenState extends State<AddBankScreen> {
               steps: [
                 Step(
                   title: const Text('Sélection de la banque'),
-                  content: _buildBankSelectionStep(bankProvider.availableBanks),
+                  content: _buildBankSelectionStep(availableBanks),
                   isActive: _currentStep >= 0,
                 ),
                 Step(
                   title: const Text('Confirmation'),
-                  content: _buildVerificationStep(bankProvider),
+                  content: buildVerificationStep(bankProvider, _selectedBankId),
                   isActive: _currentStep >= 1,
                 ),
               ],
@@ -238,7 +248,7 @@ class _AddBankScreenState extends State<AddBankScreen> {
         Text(
           'Sélectionnez la banque où vous souhaitez ouvrir un compte (${availableBanks.length} banque${availableBanks.length > 1 ? 's' : ''} disponible${availableBanks.length > 1 ? 's' : ''})',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
           ),
         )
             .animate()
@@ -284,7 +294,7 @@ class _AddBankScreenState extends State<AddBankScreen> {
                           width: 50,
                           height: 50,
                           decoration: BoxDecoration(
-                            color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                            color: Theme.of(context).primaryColor.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(25),
                           ),
                           child: bank.logoUrl.isNotEmpty
@@ -342,22 +352,20 @@ class _AddBankScreenState extends State<AddBankScreen> {
                                 Text(
                                   bank.slogan,
                                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                                     fontStyle: FontStyle.italic,
                                   ),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ],
-                              ...[
                               const SizedBox(height: 4),
                               Text(
                                 'Solde minimum: ${bank.minimumBalance.toStringAsFixed(0)} FCFA',
                                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                                 ),
                               ),
-                            ],
                             ],
                           ),
                         ),
@@ -373,7 +381,7 @@ class _AddBankScreenState extends State<AddBankScreen> {
                             border: Border.all(
                               color: isSelected 
                                   ? Theme.of(context).primaryColor
-                                  : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+                                  : Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
                               width: 2,
                             ),
                             color: isSelected 
@@ -381,7 +389,7 @@ class _AddBankScreenState extends State<AddBankScreen> {
                                 : Colors.transparent,
                           ),
                           child: isSelected
-                              ? Icon(
+                              ? const Icon(
                                   Icons.check,
                                   color: Colors.white,
                                   size: 16,
@@ -400,100 +408,6 @@ class _AddBankScreenState extends State<AddBankScreen> {
           },
         ),
       ],
-    );
-  }
-
-  Widget _buildVerificationStep(BankProvider bankProvider) {
-    return Consumer<AuthProvider>(
-      builder: (context, authProvider, child) {
-        final user = authProvider.currentUser;
-        final String fullName = '${user?.firstName.toUpperCase() ?? ''} ${user?.lastName.toUpperCase() ?? ''}';
-        final selectedBank = bankProvider.getBankById(_selectedBankId ?? '');
-        
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Confirmation',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            )
-                .animate()
-                .fadeIn(duration: 600.ms),
-            
-            const SizedBox(height: 16),
-            
-            Text(
-              'Vérifiez les informations avant de lier votre compte',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-              ),
-            )
-                .animate()
-                .fadeIn(delay: 200.ms, duration: 600.ms),
-            
-            const SizedBox(height: 24),
-            
-            // Récapitulatif
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    _buildSummaryRow('Banque', selectedBank?.name ?? 'Non sélectionnée'),
-                    if (selectedBank?.slogan.isNotEmpty == true)
-                      _buildSummaryRow('Slogan', selectedBank!.slogan),
-                    _buildSummaryRow('Type de compte', 'Compte Courant'),
-                    _buildSummaryRow('Titulaire', fullName),
-                    if (selectedBank?.minimumBalance != null)
-                      _buildSummaryRow(
-                        'Solde minimum', 
-                        '${selectedBank!.minimumBalance.toStringAsFixed(0)} FCFA'
-                      ),
-                    if (selectedBank?.withdrawFees != null)
-                      _buildSummaryRow(
-                        'Frais de retrait', 
-                        '${selectedBank!.withdrawFees.toStringAsFixed(0)} FCFA'
-                      ),
-                  ],
-                ),
-              ),
-            )
-                .animate()
-                .fadeIn(delay: 300.ms, duration: 600.ms)
-                .slideY(begin: 0.3, end: 0),
-            
-            const SizedBox(height: 24),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildSummaryRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.end,
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -517,14 +431,18 @@ class _AddBankScreenState extends State<AddBankScreen> {
   void _refreshBanks() {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final bankProvider = Provider.of<BankProvider>(context, listen: false);
+    final cardProvider = Provider.of<CardProvider>(context, listen: false);
     
-    final userId = authProvider.currentUser?.id; // userId est maintenant un int?
+    final userId = authProvider.currentUser?.id;
     if (userId != null) {
-      bankProvider.refreshAvailableBanks(userId); // Passer directement l'int
+      // Rafraîchir les banques puis les comptes utilisateur
+      bankProvider.fetchBanks().then((_) {
+        cardProvider.fetchUserBankAccounts(userId.toString());
+      });
     }
   }
 
-Future<void> _linkBankAccount() async {
+  Future<void> _linkBankAccount() async {
     // Validation préalable
     if (_selectedBankId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -543,6 +461,7 @@ Future<void> _linkBankAccount() async {
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final bankProvider = Provider.of<BankProvider>(context, listen: false);
+      final cardProvider = Provider.of<CardProvider>(context, listen: false);
       
       // Vérifier que l'utilisateur est connecté
       final currentUser = authProvider.currentUser;
@@ -557,13 +476,13 @@ Future<void> _linkBankAccount() async {
       }
 
       // Vérifier que la banque est toujours disponible
-      if (!bankProvider.isBankAvailable(_selectedBankId!)) {
+      if (!cardProvider.isBankAvailable(_selectedBankId!)) {
         throw Exception('Cette banque n\'est plus disponible. Vous y êtes peut-être déjà inscrit.');
       }
 
-      // Effectuer la souscription via l'API - userId est maintenant un int
+      // Effectuer la souscription via l'API
       final result = await bankProvider.subscribeToBank(
-        userId: currentUser!.id, // Plus besoin de convertir en String ici
+        userId: currentUser!.id,
         bankId: _selectedBankId!,
       );
 
@@ -592,7 +511,7 @@ Future<void> _linkBankAccount() async {
           await Future.delayed(const Duration(milliseconds: 500));
           
           // Rafraîchir les données pour mettre à jour la liste des banques disponibles
-          await bankProvider.refreshAvailableBanks(currentUser.id); // userId est maintenant un int
+          await cardProvider.fetchUserBankAccounts(currentUser.id.toString());
           
           // Retourner à l'écran précédent
           if (mounted) {
