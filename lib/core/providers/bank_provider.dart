@@ -152,6 +152,56 @@ class BankProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> fetchBankAccountsByCardNumber(String cardNumber) async {
+    try {
+      final url = Uri.parse(ApiConstants.cardServiceUrl);
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'query': '''
+            query GetCardByNumber {
+              cardByNumber(cardNumber: $cardNumber) {
+                id
+              }
+            }
+          '''
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        
+        if (data['errors'] != null) {
+          print('Erreur GraphQL pour les comptes bancaires: ${data['errors']}');
+          _userBankAccounts = [];
+        } else {
+          final List accountsJson = data['data']['cardByNumber'] ?? [];
+          _userBankAccounts = accountsJson.map((account) {
+            return BankAccount(
+              id: account['id']?.toString() ?? '',
+              bankName: account['bankName']?.toString() ?? 'Banque inconnue',
+              accountNumber: account['cardNumber']?.toString() ?? '',
+              accountType: 'Compte Courant',
+              balance: _parseBalance(account['currentBalance']),
+              bankLogo: _getBankLogo(account['bankName']?.toString()),
+              linkedAt: _parseDate(account['createdAt']),
+              bankId: account['bankId']?.toString() ?? '',
+            );
+          }).toList();
+        }
+      } else {
+        print('Erreur réseau pour les comptes bancaires: ${response.statusCode}');
+        _userBankAccounts = [];
+      }
+    } catch (e) {
+      print('Erreur lors de la récupération des comptes bancaires: $e');
+      _userBankAccounts = [];
+    }
+    
+    notifyListeners();
+  }
+
   // Nouvelle méthode pour souscrire à une banque
   Future<Map<String, dynamic>> subscribeToBank({
     required int userId, // Changé en int pour correspondre au modèle User
