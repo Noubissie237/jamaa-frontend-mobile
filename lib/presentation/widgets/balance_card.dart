@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:jamaa_frontend_mobile/core/theme/app_theme.dart';
+import 'package:jamaa_frontend_mobile/presentation/widgets/share_modal.dart';
 
 class BalanceCard extends StatelessWidget {
   final String balance;
@@ -19,6 +20,17 @@ class BalanceCard extends StatelessWidget {
     required this.cardNumber,
     this.accountName = "JAMAA Money Account",
   });
+
+  void _showShareModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ShareModal(
+        cardNumber: cardNumber,
+        accountName: accountName,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -105,7 +117,7 @@ class BalanceCard extends StatelessWidget {
           
           const Spacer(),
           
-          // Bottom section avec solde et bouton recharger
+          // Bottom section avec solde et bouton partager
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -147,9 +159,9 @@ class BalanceCard extends StatelessWidget {
               
               const SizedBox(width: 12), 
               
-              // Bouton Recharger
+              // Bouton Partager (modifié)
               GestureDetector(
-                onTap: onRecharge,
+                onTap: () => _showShareModal(context),
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16, 
@@ -167,7 +179,7 @@ class BalanceCard extends StatelessWidget {
                     ],
                   ),
                   child: const Text(
-                    'Recharger',
+                    'Partager',
                     style: TextStyle(
                       color: Color(0xFFE53E3E),
                       fontSize: 12, 

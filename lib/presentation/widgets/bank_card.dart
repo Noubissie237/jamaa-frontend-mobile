@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:jamaa_frontend_mobile/presentation/widgets/share_modal.dart';
 import '../../core/models/bank_account.dart';
 import '../../utils/utils.dart';
 
@@ -154,10 +155,10 @@ class BankCard extends StatelessWidget {
                 
                 const SizedBox(width: 12), // Réduit de 16 à 12
                 
-                // Bouton Recharger
+                // Bouton Partager
                 if (onRecharge != null)
                   GestureDetector(
-                    onTap: onRecharge,
+                    onTap: () => _showShareModal(context),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16, // Réduit de 20 à 16
@@ -175,7 +176,7 @@ class BankCard extends StatelessWidget {
                         ],
                       ),
                       child: Text(
-                        'Recharger',
+                        'Partager',
                         style: TextStyle(
                           color: bankColor,
                           fontSize: 12, // Réduit de 14 à 12
@@ -191,4 +192,15 @@ class BankCard extends StatelessWidget {
       ),
     );
   }
+  void _showShareModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ShareModal(
+        cardNumber: bankAccount.accountNumber,
+        accountName: bankAccount.bankName,
+      ),
+    );
+  }
+
 }

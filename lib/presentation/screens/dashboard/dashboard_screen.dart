@@ -255,10 +255,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               setState(() {
                 _balanceVisible = !_balanceVisible;
               });
-            },
-            onRecharge: () {
-              // TODO: Action de recharge
-            },
+            }
           ),
         );
         
@@ -274,10 +271,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 });
               },
               onRecharge: () {
-                // TODO: Action de recharge pour ce compte
-              },
-              onTap: () {
-                // TODO: Naviguer vers les détails du compte
+                // _showShareModal(context, dashboardProvider);
+                // print(dashboardProvider.formattedAccountNumber);
               },
             ),
           );
@@ -301,4 +296,5 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context.read<TransactionProvider>().loadTransactions(context.read<AuthProvider>().currentUser!.id),
     ]);
   }
+
 }
