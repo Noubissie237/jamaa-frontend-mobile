@@ -32,18 +32,24 @@ class ProfileScreen extends StatelessWidget {
             return const Center(child: Text('Utilisateur non connecté'));
           }
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                // Header du profil
-                _buildProfileHeader(user, theme),
+          return RefreshIndicator(
+            onRefresh: () async {
+              await authProvider.refreshUserData();
+            },
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              physics: const AlwaysScrollableScrollPhysics(), // Important pour permettre le pull même si le contenu ne dépasse pas l'écran
+              child: Column(
+                children: [
+                  // Header du profil
+                  _buildProfileHeader(user, theme),
 
-                const SizedBox(height: 32),
+                  const SizedBox(height: 32),
 
-                // Sections du profil
-                _buildProfileSections(context, theme),
-              ],
+                  // Sections du profil
+                  _buildProfileSections(context, theme),
+                ],
+              ),
             ),
           );
         },
@@ -126,6 +132,7 @@ class ProfileScreen extends StatelessWidget {
                   style: theme.textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
+                  textAlign: TextAlign.center,
                 )
                 .animate()
                 .fadeIn(delay: 300.ms, duration: 600.ms)
@@ -138,6 +145,7 @@ class ProfileScreen extends StatelessWidget {
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
+                  textAlign: TextAlign.center,
                 )
                 .animate()
                 .fadeIn(delay: 400.ms, duration: 600.ms)
@@ -211,13 +219,6 @@ class ProfileScreen extends StatelessWidget {
                 Icons.security_outlined,
                 () => context.go('/main/profile/security'),
               ),
-              _buildMenuItem(
-                context,
-                'Vérification du compte',
-                'Documents d\'identité',
-                Icons.verified_user_outlined,
-                () => _showVerificationDialog(context),
-              ),
             ])
             .animate()
             .fadeIn(delay: 600.ms, duration: 600.ms)
@@ -249,59 +250,10 @@ class ProfileScreen extends StatelessWidget {
                     () => _showLanguageDialog(context, settingsProvider),
                   );
                 },
-              ),
-              Consumer<SettingsProvider>(
-                builder: (context, settingsProvider, child) {
-                  return _buildSwitchMenuItem(
-                    context,
-                    'Notifications',
-                    'Alertes et rappels',
-                    Icons.notifications_outlined,
-                    settingsProvider.notificationsEnabled,
-                    (value) => settingsProvider.toggleNotifications(),
-                  );
-                },
-              ),
+              )
             ])
             .animate()
             .fadeIn(delay: 700.ms, duration: 600.ms)
-            .slideX(begin: -0.3, end: 0),
-
-        const SizedBox(height: 16),
-
-        // Section Support
-        _buildSection(context, 'Support & Légal', [
-              _buildMenuItem(
-                context,
-                'Centre d\'aide',
-                'FAQ et support',
-                Icons.help_outline,
-                () => _showComingSoon(context),
-              ),
-              _buildMenuItem(
-                context,
-                'Nous contacter',
-                'Email, téléphone',
-                Icons.contact_support_outlined,
-                () => _showContactDialog(context),
-              ),
-              _buildMenuItem(
-                context,
-                'Conditions d\'utilisation',
-                'Termes et conditions',
-                Icons.description_outlined,
-                () => _showComingSoon(context),
-              ),
-              _buildMenuItem(
-                context,
-                'Politique de confidentialité',
-                'Protection des données',
-                Icons.privacy_tip_outlined,
-                () => _showComingSoon(context),
-              ),
-            ])
-            .animate()
-            .fadeIn(delay: 800.ms, duration: 600.ms)
             .slideX(begin: -0.3, end: 0),
 
         const SizedBox(height: 32),
@@ -394,26 +346,6 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  void _showVerificationDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Vérification du compte'),
-            content: const Text(
-              'Pour vérifier votre compte, vous devez fournir une pièce d\'identité valide. '
-              'Cette fonctionnalité sera bientôt disponible.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Compris'),
-              ),
-            ],
-          ),
-    );
-  }
-
   void _showLanguageDialog(
     BuildContext context,
     SettingsProvider settingsProvider,
@@ -436,70 +368,13 @@ class ProfileScreen extends StatelessWidget {
                       Navigator.pop(context);
                     }
                   },
-                ),
-                RadioListTile<String>(
-                  title: const Text('English'),
-                  value: 'en',
-                  groupValue: settingsProvider.language,
-                  onChanged: (value) {
-                    if (value != null) {
-                      settingsProvider.setLanguage(value);
-                      Navigator.pop(context);
-                    }
-                  },
-                ),
+                )
               ],
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: const Text('Annuler'),
-              ),
-            ],
-          ),
-    );
-  }
-
-  void _showContactDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Nous contacter'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.email),
-                  title: const Text('Email'),
-                  subtitle: const Text('support@jamaa.cm'),
-                  contentPadding: EdgeInsets.zero,
-                  onTap: () {
-                    // TODO: Ouvrir l'app email
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.phone),
-                  title: const Text('Téléphone'),
-                  subtitle: const Text('+237 690 232 120'),
-                  contentPadding: EdgeInsets.zero,
-                  onTap: () {
-                    // TODO: Ouvrir l'app téléphone
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.location_on),
-                  title: const Text('Adresse'),
-                  subtitle: const Text('Yaoundé, Cameroun'),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Fermer'),
               ),
             ],
           ),
@@ -529,14 +404,6 @@ class ProfileScreen extends StatelessWidget {
               ),
             ],
           ),
-    );
-  }
-
-  void _showComingSoon(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Cette fonctionnalité sera bientôt disponible'),
-      ),
     );
   }
 }

@@ -78,11 +78,51 @@ class AuthProvider extends ChangeNotifier {
       phone: payloadMap != null && payloadMap['phone'] != null ? payloadMap['phone'] : '',
       cniNumber: '',
       createdAt: DateTime.now(),
-      isVerified: true,
+      isVerified: payloadMap != null && payloadMap['isVerified'] != null ? payloadMap['isVerified'] : false,
     );
     _isAuthenticated = true;
     notifyListeners();
   }
+
+  Future<void> refreshUserData() async {
+    _setLoading(true);
+    _error = null;
+
+    try {
+      final query = '''
+      query {
+        getCustomerById(id: "${_currentUser?.id}") {
+          id
+          firstName
+          lastName
+          email
+          phone
+          isVerified
+        }
+      }
+      ''';
+      final response = await http.post(
+        Uri.parse(ApiConstants.register),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'query': query}),
+      );
+      final data = jsonDecode(response.body);
+      if (data['errors'] != null) {
+        throw Exception(data['errors'][0]['message']);
+      }
+      if (data['data'] != null) {
+        _currentUser!.isVerified = data['data']['getCustomerById']['isVerified'];
+        notifyListeners();
+      }
+    } catch (e) {
+      _error = e.toString();
+      _isAuthenticated = false;
+      notifyListeners();
+    } finally {
+      _setLoading(false);
+    }
+  }
+
 
   User? _currentUser;
   bool _isAuthenticated = false;
@@ -140,7 +180,7 @@ class AuthProvider extends ChangeNotifier {
           phone: payloadMap['phone'] ?? '',
           cniNumber: '', // Si présent, ajoute le champ
           createdAt: DateTime.now(),
-          isVerified: true,
+          isVerified: payloadMap['isVerified'] ?? false,
         );
 
         debugPrint('[LOGIN] Utilisateur connecté : ${_currentUser?.email}');
@@ -173,8 +213,6 @@ class AuthProvider extends ChangeNotifier {
       _setLoading(false);
     }
   }
-
-
 
 Future<void> register({
   required String firstName,
@@ -287,6 +325,7 @@ Future<void> register({
           lastName
           email
           phone
+          isVerified
         }
       }
     ''';
@@ -338,7 +377,7 @@ Future<void> register({
             cniRectoImage: cniRectoPath,
             cniVersoImage: cniVersoPath,
             createdAt: DateTime.now(),
-            isVerified: false,
+            isVerified: user['isVerified'] ?? false,
           );
 
           _isAuthenticated = true;

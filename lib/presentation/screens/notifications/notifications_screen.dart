@@ -108,9 +108,6 @@ class _NotificationsScreenState extends State<NotificationsScreen>
           PopupMenuButton<String>(
             onSelected: (value) {
               switch (value) {
-                case 'settings':
-                  _showNotificationSettings();
-                  break;
                 case 'clear':
                   _showClearDialog();
                   break;
@@ -118,14 +115,6 @@ class _NotificationsScreenState extends State<NotificationsScreen>
             },
             itemBuilder:
                 (context) => [
-                  const PopupMenuItem(
-                    value: 'settings',
-                    child: ListTile(
-                      leading: Icon(Icons.settings),
-                      title: Text('Paramètres'),
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ),
                   const PopupMenuItem(
                     value: 'clear',
                     child: ListTile(
@@ -584,166 +573,6 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                 },
                 style: TextButton.styleFrom(foregroundColor: Colors.red),
                 child: const Text('Effacer tout'),
-              ),
-            ],
-          ),
-    );
-  }
-
-  void _showNotificationSettings() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder:
-          (context) => Container(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Paramètres des notifications',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-
-                SwitchListTile(
-                  title: const Text('Notifications push'),
-                  subtitle: const Text(
-                    'Recevoir les notifications sur cet appareil',
-                  ),
-                  value: true,
-                  onChanged: (value) {
-                    // TODO: Gérer les notifications push
-                  },
-                ),
-
-                SwitchListTile(
-                  title: const Text('Notifications par email'),
-                  subtitle: const Text(
-                    'Recevoir les notifications importantes par email',
-                  ),
-                  value: true,
-                  onChanged: (value) {
-                    // TODO: Gérer les notifications email
-                  },
-                ),
-
-                SwitchListTile(
-                  title: const Text('Notifications SMS'),
-                  subtitle: const Text(
-                    'Recevoir les alertes de sécurité par SMS',
-                  ),
-                  value: false,
-                  onChanged: (value) {
-                    // TODO: Gérer les notifications SMS
-                  },
-                ),
-
-                const Divider(),
-
-                ListTile(
-                  title: const Text('Types de notifications'),
-                  subtitle: const Text(
-                    'Choisir les types de notifications à recevoir',
-                  ),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _showNotificationTypes();
-                  },
-                ),
-
-                ListTile(
-                  title: const Text('Horaires de silence'),
-                  subtitle: const Text('Définir les heures sans notifications'),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Horaires de silence à venir'),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-    );
-  }
-
-  void _showNotificationTypes() {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Types de notifications'),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CheckboxListTile(
-                    title: const Text('Transactions'),
-                    subtitle: const Text('Transferts, paiements, dépôts'),
-                    value: true,
-                    onChanged: (value) {
-                      // TODO: Gérer les préférences
-                    },
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                  CheckboxListTile(
-                    title: const Text('Sécurité'),
-                    subtitle: const Text(
-                      'Connexions, changements de mot de passe',
-                    ),
-                    value: true,
-                    onChanged: (value) {
-                      // TODO: Gérer les préférences
-                    },
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                  CheckboxListTile(
-                    title: const Text('Comptes bancaires'),
-                    subtitle: const Text('Nouveaux comptes, mises à jour'),
-                    value: true,
-                    onChanged: (value) {
-                      // TODO: Gérer les préférences
-                    },
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                  CheckboxListTile(
-                    title: const Text('Promotions'),
-                    subtitle: const Text('Offres spéciales, nouveautés'),
-                    value: false,
-                    onChanged: (value) {
-                      // TODO: Gérer les préférences
-                    },
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Fermer'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Préférences sauvegardées'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                },
-                child: const Text('Sauvegarder'),
               ),
             ],
           ),

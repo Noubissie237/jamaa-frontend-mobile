@@ -354,10 +354,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             
             CustomTextField(
               controller: _cniController,
-              label: 'Numéro CNI (optionnel)',
+              label: 'Numéro CNI',
               prefixIcon: Icons.badge_outlined,
               validator: (value) {
-                if (value != null && value.isNotEmpty && value.length < 8) {
+                if (value == null || value.isEmpty) {
+                  return 'Veuillez saisir votre numéro CNI';
+                }
+                if (value.length < 8) {
                   return 'Numéro CNI invalide';
                 }
                 return null;
@@ -366,37 +369,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 .animate()
                 .fadeIn(delay: 1100.ms, duration: 600.ms)
                 .slideX(begin: -0.2, end: 0),
-            
-            const SizedBox(height: 12),
-            
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.blue.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.info_outline,
-                    color: Colors.blue,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'La CNI est requise pour certaines fonctionnalités avancées.',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.blue,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            )
-                .animate()
-                .fadeIn(delay: 1200.ms, duration: 600.ms),
           ],
         ),
       ),

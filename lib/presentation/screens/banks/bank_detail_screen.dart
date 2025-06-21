@@ -251,7 +251,7 @@ class BankDetailsScreen extends StatelessWidget {
           ),
         ),
         Text(
-          '${amount.toStringAsFixed(0)} ${amount != 0 ? ' %' : 'FCFA'}',
+          '${amount.toStringAsFixed(2)} ${amount != 0 ? ' %' : 'FCFA'}',
           style: context.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.bold,
             color: color,

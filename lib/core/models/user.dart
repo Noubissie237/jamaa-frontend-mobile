@@ -9,7 +9,7 @@ class User {
   final String? cniVersoImage;
   final String? profilePicture;
   final DateTime createdAt;
-  final bool isVerified;
+  bool isVerified;
 
   User({
     required this.id,
