@@ -31,7 +31,7 @@ class TransactionItem extends StatelessWidget {
                 width: 45,
                 height: 45,
                 decoration: BoxDecoration(
-                  color: _getTransactionColor(transaction.type).withOpacity(0.1),
+                  color: _getTransactionColor(transaction.type).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -58,7 +58,7 @@ class TransactionItem extends StatelessWidget {
                     Text(
                       transaction.description ?? '',
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface.withOpacity(0.7),
+                        color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -89,7 +89,7 @@ class TransactionItem extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: _getStatusColor(transaction.status).withOpacity(0.1),
+                      color: _getStatusColor(transaction.status).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(

@@ -93,7 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Text(
                             'Connectez-vous à votre compte JAMAA',
                             style: theme.textTheme.bodyLarge?.copyWith(
-                              color: theme.colorScheme.onBackground.withOpacity(
+                              color: theme.colorScheme.onBackground.withValues(alpha: 
                                 0.7,
                               ),
                             ),
@@ -207,10 +207,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       return Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.error.withOpacity(0.1),
+                              color: theme.colorScheme.error.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: theme.colorScheme.error.withOpacity(0.3),
+                                color: theme.colorScheme.error.withValues(alpha: 0.3),
                               ),
                             ),
                             child: Row(

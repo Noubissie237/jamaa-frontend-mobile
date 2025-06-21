@@ -150,7 +150,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
               Text(
                 'Dernière modification: Il y a 30 jours',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
               )
                   .animate()
@@ -269,7 +269,7 @@ CustomTextField(
               Text(
                 'Code PIN configuré',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
               )
                   .animate()
@@ -583,7 +583,7 @@ CustomTextField(
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
+                  color: Colors.green.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(

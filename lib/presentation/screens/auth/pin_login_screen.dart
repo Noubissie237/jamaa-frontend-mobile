@@ -86,7 +86,7 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
             shape: BoxShape.circle,
             color: filled ? Theme.of(context).primaryColor : Colors.transparent,
             border: Border.all(
-              color: Theme.of(context).primaryColor.withOpacity(0.5),
+              color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
               width: 2,
             ),
           ),
@@ -108,7 +108,7 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
             shape: BoxShape.circle,
             color: Theme.of(context).cardColor,
             border: Border.all(
-              color: Theme.of(context).dividerColor.withOpacity(0.2),
+              color: Theme.of(context).dividerColor.withValues(alpha: 0.2),
             ),
           ),
           child: Center(
@@ -203,7 +203,7 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: theme.primaryColor.withOpacity(0.1),
+                  color: theme.primaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(50),
                 ),
                 child: Icon(

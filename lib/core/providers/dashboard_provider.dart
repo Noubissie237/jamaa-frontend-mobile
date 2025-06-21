@@ -30,6 +30,7 @@ class ApiResult<T> {
 class DashboardProvider extends ChangeNotifier {
   double _totalBalance = 0.0;
   String _accountNumber = '';
+  String _accountId = '';
   List<BankAccount> _bankAccounts = [];
   bool _isLoading = false;
   DashboardError? _error;
@@ -53,6 +54,12 @@ class DashboardProvider extends ChangeNotifier {
   String get formattedAccountNumber {
     return _accountNumber.isNotEmpty 
         ? _accountNumber
+        : '';
+  }
+
+  String get formattedAccountId {
+    return _accountId.isNotEmpty 
+        ? _accountId
         : '';
   }
 
@@ -107,7 +114,8 @@ class DashboardProvider extends ChangeNotifier {
         query {
           getAccountByUserId(userId: $userId) {
             balance,
-            accountNumber
+            accountNumber,
+            id
           }
         }
       ''';
@@ -242,6 +250,7 @@ class DashboardProvider extends ChangeNotifier {
       final data = result.data!;
       _totalBalance = _parseBalance(data['balance']);
       _accountNumber = data['accountNumber']?.toString() ?? '';
+      _accountId = data['id']?.toString() ?? '';
       debugPrint('[DASHBOARD] Solde chargé: $_totalBalance XAF');
     } else {
       debugPrint('[DASHBOARD] Échec du chargement du solde: ${result.error?.message}');

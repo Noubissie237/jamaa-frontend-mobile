@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
+import 'package:jamaa_frontend_mobile/core/providers/auth_provider.dart';
+import 'package:jamaa_frontend_mobile/core/providers/card_provider.dart';
+import 'package:jamaa_frontend_mobile/core/providers/recharge_retrait_provider.dart';
 import 'package:provider/provider.dart';
-
 import '../../../core/providers/dashboard_provider.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/loading_button.dart';
@@ -16,39 +19,28 @@ class DepositScreen extends StatefulWidget {
 
 class _DepositScreenState extends State<DepositScreen>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
   final _formKey = GlobalKey<FormState>();
-  
-  // Controllers pour dépôt agent
-  final _agentAmountController = TextEditingController();
-  final _agentNotesController = TextEditingController();
   
   // Controllers pour dépôt virement
   final _virementAmountController = TextEditingController();
   final _virementNotesController = TextEditingController();
   
-  String? _selectedBank;
+  String? _selectedBankId; // ID de la banque sélectionnée
+  String? _selectedBankName; // Nom de la banque pour l'affichage
   bool _isProcessing = false;
-
-  final List<String> _banks = [
-    'Afriland First Bank',
-    'BICEC',
-    'UBA Cameroun',
-    'Ecobank',
-    'SGBC',
-  ];
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    
+    // Charger les comptes bancaires de l'utilisateur au démarrage
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadUserBankAccounts();
+    });
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
-    _agentAmountController.dispose();
-    _agentNotesController.dispose();
     _virementAmountController.dispose();
     _virementNotesController.dispose();
     super.dispose();
@@ -56,162 +48,66 @@ class _DepositScreenState extends State<DepositScreen>
 
   @override
   Widget build(BuildContext context) {
-    // final theme = Theme.of(context);
-    
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Déposer de l\'argent'),
+        title: const Text('Effectuer une recharge'),
         centerTitle: true,
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(
-              icon: Icon(Icons.person),
-              text: 'Via Agent',
-            ),
-            Tab(
-              icon: Icon(Icons.account_balance),
-              text: 'Virement',
-            ),
-          ],
-        ),
-      ),
-      body: Form(
-        key: _formKey,
-        child: TabBarView(
-          controller: _tabController,
-          children: [
-            _buildAgentDepositTab(),
-            _buildBankTransferTab(),
-          ],
-        ),
-      ),
-    );
-  }
+        // Bouton de rafraîchissement dans l'AppBar
+        actions: [
+          Consumer2<CardProvider, AuthProvider>(
+            builder: (context, cardProvider, authProvider, child) {
+              if (authProvider.currentUser == null) {
+                return const SizedBox.shrink();
+              }
 
-  Widget _buildAgentDepositTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Solde actuel
-          _buildBalanceCard(),
-          
-          const SizedBox(height: 32),
-          
-          // Instructions
-          _buildInstructionsCard(
-            'Dépôt via Agent',
-            'Trouvez un agent JAMAA près de chez vous avec de l\'argent liquide pour alimenter votre portefeuille.',
-            Icons.person_pin_circle,
-            Colors.blue,
-          ),
-          
-          const SizedBox(height: 24),
-          
-          // Montant à déposer
-          Text(
-            'Montant à déposer',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          )
-              .animate()
-              .fadeIn(delay: 300.ms, duration: 600.ms),
-          
-          const SizedBox(height: 12),
-          
-          CustomTextField(
-            controller: _agentAmountController,
-            label: 'Montant (XAF)',
-            hint: 'Saisissez le montant',
-            prefixIcon: Icons.money,
-            keyboardType: TextInputType.number,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-            ],
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Veuillez saisir un montant';
-              }
-              final amount = int.tryParse(value);
-              if (amount == null || amount <= 0) {
-                return 'Montant invalide';
-              }
-              if (amount < 100) {
-                return 'Montant minimum : 100 XAF';
-              }
-              if (amount > 1000000) {
-                return 'Montant maximum : 1 000 000 XAF';
-              }
-              return null;
+              return IconButton(
+                onPressed: cardProvider.isLoading ? null : _loadUserBankAccounts,
+                icon: cardProvider.isLoading 
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.refresh),
+                tooltip: 'Actualiser les comptes',
+              );
             },
-          )
-              .animate()
-              .fadeIn(delay: 400.ms, duration: 600.ms)
-              .slideX(begin: -0.2, end: 0),
-          
-          const SizedBox(height: 16),
-          
-          // Montants rapides
-          _buildQuickAmounts(_agentAmountController),
-          
-          const SizedBox(height: 24),
-          
-          // Notes (optionnel)
-          Text(
-            'Notes (optionnel)',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          )
-              .animate()
-              .fadeIn(delay: 500.ms, duration: 600.ms),
-          
-          const SizedBox(height: 12),
-          
-          CustomTextField(
-            controller: _agentNotesController,
-            label: 'Notes',
-            hint: 'Ajoutez une note à votre dépôt',
-            prefixIcon: Icons.note_outlined,
-            maxLines: 3,
-          )
-              .animate()
-              .fadeIn(delay: 600.ms, duration: 600.ms)
-              .slideX(begin: 0.2, end: 0),
-          
-          const SizedBox(height: 32),
-          
-          // Agents à proximité
-          _buildNearbyAgents(),
-          
-          const SizedBox(height: 32),
-          
-          // Frais de dépôt
-          _buildFeesInfo(),
-          
-          const SizedBox(height: 32),
-          
-          // Bouton générer code
-          SizedBox(
-            width: double.infinity,
-            child: LoadingButton(
-              onPressed: () => _generateDepositCode('agent'),
-              isLoading: _isProcessing,
-              child: const Text('Générer le code de dépôt'),
-            ),
-          )
-              .animate()
-              .fadeIn(delay: 800.ms, duration: 600.ms)
-              .slideY(begin: 0.3, end: 0),
+          ),
         ],
       ),
+      body: Consumer2<CardProvider, AuthProvider>(
+        builder: (context, cardProvider, authProvider, child) {
+          // Vérifier si l'utilisateur est connecté
+          if (authProvider.currentUser == null) {
+            return const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.person_off, size: 64, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text(
+                    'Vous devez être connecté pour effectuer une recharge',
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return Form(
+            key: _formKey,
+            child: _buildBankTransferTab(cardProvider),
+          );
+        },
+      ),
     );
   }
 
-  Widget _buildBankTransferTab() {
+  Widget _buildBankTransferTab(CardProvider cardProvider) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -224,22 +120,17 @@ class _DepositScreenState extends State<DepositScreen>
           
           // Instructions
           _buildInstructionsCard(
-            'Dépôt par Virement',
-            'Effectuez un virement bancaire vers votre compte JAMAA depuis votre banque.',
+            'Recharge par virement',
+            'Effectuez une recharge depuis votre compte JAMAA vers votre banque.',
             Icons.account_balance_outlined,
             Colors.green,
           ),
           
           const SizedBox(height: 24),
           
-          // Informations de virement
-          _buildBankTransferInfo(),
-          
-          const SizedBox(height: 24),
-          
           // Sélection de la banque source
           Text(
-            'Banque d\'origine',
+            'Compte à recharger',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -247,99 +138,204 @@ class _DepositScreenState extends State<DepositScreen>
           
           const SizedBox(height: 12),
           
-          DropdownButtonFormField<String>(
-            value: _selectedBank,
-            decoration: const InputDecoration(
-              labelText: 'Votre banque',
-              prefixIcon: Icon(Icons.account_balance),
+          // Affichage conditionnel selon l'état du provider
+          if (cardProvider.isLoading)
+            const Card(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(width: 16),
+                    Text('Chargement...'),
+                  ],
+                ),
+              ),
+            )
+          else if (cardProvider.error != null)
+            Card(
+              color: Colors.red.shade50,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.error, color: Colors.red.shade700),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Erreur lors du chargement de vos comptes',
+                            style: TextStyle(
+                              color: Colors.red.shade700,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      cardProvider.error!,
+                      style: TextStyle(color: Colors.red.shade600),
+                    ),
+                    const SizedBox(height: 8),
+                    ElevatedButton.icon(
+                      onPressed: _loadUserBankAccounts,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Réessayer'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red.shade100,
+                        foregroundColor: Colors.red.shade700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else if (cardProvider.userBankAccounts.isEmpty)
+            Card(
+              color: Colors.orange.shade50,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    Icon(Icons.account_balance_wallet_outlined, 
+                         size: 48, 
+                         color: Colors.orange.shade700),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Aucun compte bancaire trouvé',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.orange.shade700,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Vous devez d\'abord lier un compte bancaire pour effectuer une recharge.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.orange.shade600),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        // Navigation vers l'écran de liaison de compte bancaire
+                        // Navigator.pushNamed(context, '/link-bank-account');
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Fonctionnalité de liaison de compte à venir'),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.add),
+                      label: const Text('Lier un compte bancaire'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange.shade100,
+                        foregroundColor: Colors.orange.shade700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            DropdownButtonFormField<String>(
+              value: _selectedBankId,
+              decoration: const InputDecoration(
+                labelText: 'Compte à recharger',
+                prefixIcon: Icon(Icons.account_balance),
+                helperText: 'Sélectionnez le compte bancaire à utiliser',
+              ),
+              items: cardProvider.userBankAccounts.map((bankAccount) {
+                return DropdownMenuItem(
+                  value: bankAccount.id,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        bankAccount.bankName,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      )
+                    ],
+                  ),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _selectedBankId = value;
+                  // Trouver le nom de la banque correspondant à l'ID
+                  final selectedAccount = cardProvider.userBankAccounts
+                      .firstWhere((account) => account.id == value);
+                  _selectedBankName = selectedAccount.bankName;
+                });
+                debugPrint('[DEPOSIT] Compte sélectionné: $_selectedBankName (ID: $_selectedBankId)');
+              },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Veuillez sélectionner un compte bancaire';
+                }
+                return null;
+              },
             ),
-            items: _banks.map((bank) {
-              return DropdownMenuItem(
-                value: bank,
-                child: Text(bank),
-              );
-            }).toList(),
-            onChanged: (value) {
-              setState(() {
-                _selectedBank = value;
-              });
-            },
-            validator: (value) {
-              if (value == null) {
-                return 'Veuillez sélectionner votre banque';
-              }
-              return null;
-            },
-          ),
           
           const SizedBox(height: 24),
           
-          // Montant du virement
-          Text(
-            'Montant du virement',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
+          // Montant du virement (seulement si un compte est disponible)
+          if (cardProvider.userBankAccounts.isNotEmpty) ...[
+            Text(
+              'Montant de la recharge',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-          
-          const SizedBox(height: 12),
-          
-          CustomTextField(
-            controller: _virementAmountController,
-            label: 'Montant (XAF)',
-            hint: 'Montant que vous allez virer',
-            prefixIcon: Icons.money,
-            keyboardType: TextInputType.number,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-            ],
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Veuillez saisir un montant';
-              }
-              final amount = int.tryParse(value);
-              if (amount == null || amount <= 0) {
-                return 'Montant invalide';
-              }
-              if (amount < 1000) {
-                return 'Montant minimum : 1 000 XAF';
-              }
-              return null;
-            },
-          ),
-          
-          const SizedBox(height: 16),
-          
-          // Montants rapides
-          _buildQuickAmounts(_virementAmountController),
-          
-          const SizedBox(height: 24),
-          
-          // Notes
-          CustomTextField(
-            controller: _virementNotesController,
-            label: 'Référence du virement',
-            hint: 'Référence pour identifier votre virement',
-            prefixIcon: Icons.receipt_outlined,
-            maxLines: 2,
-          ),
-          
-          const SizedBox(height: 32),
-          
-          // Instructions finales
-          _buildTransferInstructions(),
-          
-          const SizedBox(height: 32),
-          
-          // Bouton confirmer
-          SizedBox(
-            width: double.infinity,
-            child: LoadingButton(
-              onPressed: () => _notifyBankTransfer(),
-              isLoading: _isProcessing,
-              child: const Text('Notifier le virement'),
+            
+            const SizedBox(height: 12),
+            
+            CustomTextField(
+              controller: _virementAmountController,
+              label: 'Montant (XAF)',
+              hint: 'Montant que vous allez virer',
+              prefixIcon: Icons.money,
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+              ],
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Veuillez saisir un montant';
+                }
+                final amount = int.tryParse(value);
+                if (amount == null || amount <= 0) {
+                  return 'Montant invalide';
+                }
+                if (amount < 1000) {
+                  return 'Montant minimum : 1 000 XAF';
+                }
+                
+                return null;
+              },
             ),
-          ),
+            
+            const SizedBox(height: 16),
+            
+            // Montants rapides
+            _buildQuickAmounts(_virementAmountController),
+            
+            const SizedBox(height: 32),
+            
+            // Bouton confirmer
+            SizedBox(
+              width: double.infinity,
+              child: LoadingButton(
+                onPressed: _selectedBankId != null ? () => _makeRecharge() : null,
+                isLoading: _isProcessing,
+                child: const Text('Effectuer la recharge'),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -355,7 +351,7 @@ class _DepositScreenState extends State<DepositScreen>
             gradient: LinearGradient(
               colors: [
                 Theme.of(context).primaryColor,
-                Theme.of(context).primaryColor.withOpacity(0.8),
+                Theme.of(context).primaryColor.withValues(alpha: 0.8),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -368,7 +364,7 @@ class _DepositScreenState extends State<DepositScreen>
               Text(
                 'Solde actuel',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                 ),
               ),
               const SizedBox(height: 8),
@@ -399,7 +395,7 @@ class _DepositScreenState extends State<DepositScreen>
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(25),
               ),
               child: Icon(
@@ -423,7 +419,7 @@ class _DepositScreenState extends State<DepositScreen>
                   Text(
                     description,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                   ),
                 ],
@@ -448,7 +444,7 @@ class _DepositScreenState extends State<DepositScreen>
           'Montants rapides',
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w600,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
           ),
         ),
         const SizedBox(height: 8),
@@ -456,6 +452,7 @@ class _DepositScreenState extends State<DepositScreen>
           spacing: 8,
           runSpacing: 8,
           children: quickAmounts.map((amount) {
+
             return InkWell(
               onTap: () {
                 controller.text = amount.toString();
@@ -464,7 +461,7 @@ class _DepositScreenState extends State<DepositScreen>
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color: Theme.of(context).primaryColor.withOpacity(0.3),
+                    color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
                   ),
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -483,501 +480,205 @@ class _DepositScreenState extends State<DepositScreen>
     );
   }
 
-  Widget _buildNearbyAgents() {
-    final agents = [
-      {'name': 'Agent Central Market', 'distance': '0.2 km', 'rating': 4.8},
-      {'name': 'Agent Mvog-Ada', 'distance': '0.5 km', 'rating': 4.6},
-      {'name': 'Agent Melen', 'distance': '1.2 km', 'rating': 4.9},
-    ];
+Future<void> _makeRecharge() async {
+  if (!_formKey.currentState!.validate()) {
+    return;
+  }
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+  setState(() {
+    _isProcessing = true;
+  });
+
+  final dashboardProvider = Provider.of<DashboardProvider>(context, listen: false);
+  final rechargeProvider = Provider.of<RechargeRetraitProvider>(context, listen: false);
+  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+  int userId = authProvider.currentUser!.id;
+
+  if(dashboardProvider.totalBalance < double.parse(_virementAmountController.text)) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Solde insuffisant pour effectuer cette recharge'),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+    setState(() {
+      _isProcessing = false;
+    });
+    return;
+  }
+
+  try {
+    final amount = double.parse(_virementAmountController.text);
+    
+    debugPrint('[DEPOSIT] Début de la recharge: '
+        'Banque: $_selectedBankName (ID: $_selectedBankId), '
+        'Montant: $amount XAF, '
+        'Compte: ${dashboardProvider.formattedAccountId}');
+
+    final success = await rechargeProvider.recharge(
+      accountId: dashboardProvider.formattedAccountId,
+      cardId: _selectedBankId!,
+      amount: amount,
+    );
+
+    if (mounted) {
+      if (success) {
+        debugPrint('[DEPOSIT] Recharge notifiée avec succès');
+        
+        // Message de succès
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Recharge de $amount XAF vers $_selectedBankName effectuée avec succès'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+        
+        // Réinitialiser le formulaire
+        _virementAmountController.clear();
+        setState(() {
+          _selectedBankId = null;
+          _selectedBankName = null;
+        });
+        
+        // Recharger les données du dashboard pour mettre à jour les soldes
+        await dashboardProvider.loadDashboardData(userId: userId.toString());
+        
+        // Navigation seulement en cas de succès
+        if (context.mounted) {
+          context.go('/main');
+        }
+        
+      } else {
+        debugPrint('[DEPOSIT] Échec de la recharge');
+        
+        // Récupérer le message d'erreur du provider
+        String errorMessage = 'Échec de la recharge';
+        if (rechargeProvider.error != null) {
+          errorMessage = 'Solde insuffisant pour effectuer cette recharge';
+          
+          // Personnaliser le message selon le type d'erreur
+          switch (rechargeProvider.error!.type) {
+            case 'INSUFFICIENT_BALANCE_ERROR':
+              errorMessage = 'Solde insuffisant pour effectuer cette recharge';
+              break;
+            case 'RECHARGE_FAILED':
+              errorMessage = 'La recharge a échoué. Veuillez réessayer.';
+              break;
+            case 'GRAPHQL_ERROR':
+              errorMessage = 'Erreur de traitement. Veuillez réessayer.';
+              break;
+            case 'HTTP_ERROR':
+              errorMessage = 'Problème de connexion. Vérifiez votre réseau.';
+              break;
+            case 'CONNECTION_ERROR':
+              errorMessage = 'Impossible de se connecter au serveur.';
+              break;
+            default:
+              errorMessage = 'Solde insuffisant pour effectuer cette recharge';
+          }
+        }
+        
+        // Message d'erreur spécifique
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.location_on,
-                  color: Theme.of(context).primaryColor,
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
                 Text(
-                  'Agents à proximité',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  'Erreur de recharge',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
+                const SizedBox(height: 4),
+                Text(errorMessage),
               ],
             ),
-            const SizedBox(height: 12),
-            ...agents.map((agent) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: Colors.green,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      agent['name'] as String,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    agent['distance'] as String,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Icon(
-                    Icons.star,
-                    size: 14,
-                    color: Colors.amber,
-                  ),
-                  Text(
-                    agent['rating'].toString(),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            )).toList(),
-          ],
-        ),
-      ),
-    )
-        .animate()
-        .fadeIn(delay: 700.ms, duration: 600.ms);
-  }
-
-  Widget _buildBankTransferInfo() {
-    return Card(
-      color: Theme.of(context).primaryColor.withOpacity(0.05),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Informations de virement JAMAA',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).primaryColor,
-              ),
-            ),
-            const SizedBox(height: 12),
-            _buildInfoRow('Nom du bénéficiaire', 'JAMAA WALLET'),
-            _buildInfoRow('Banque', 'Afriland First Bank'),
-            _buildInfoRow('Numéro de compte', '10002 12345 67890 12'),
-            _buildInfoRow('Code banque', '10002'),
-            _buildInfoRow('Référence', 'Votre numéro de téléphone'),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTransferInstructions() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.blue.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.blue.withOpacity(0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.info_outline,
-                color: Colors.blue,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Instructions',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: Colors.blue,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '1. Effectuez le virement bancaire avec les informations ci-dessus\n'
-            '2. Notifiez-nous le virement en cliquant sur le bouton\n'
-            '3. Votre compte sera crédité sous 24h ouvrables',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.blue,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFeesInfo() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.green.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.green.withOpacity(0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.info_outline,
-                color: Colors.green,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Frais de dépôt',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: Colors.green,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Dépôt via agent : Gratuit\n'
-            'Virement bancaire : Frais bancaires standard',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.green,
-            ),
-          ),
-        ],
-      ),
-    )
-        .animate()
-        .fadeIn(delay: 700.ms, duration: 600.ms);
-  }
-
-  Future<void> _generateDepositCode(String type) async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() {
-      _isProcessing = true;
-    });
-
-    try {
-      // Simulation de génération de code
-      await Future.delayed(const Duration(seconds: 2));
-      
-      final amount = _agentAmountController.text;
-      
-      if (mounted) {
-        // Afficher le dialogue avec le code
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => _buildDepositCodeDialog(amount),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur lors de la génération: ${e.toString()}'),
             backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isProcessing = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _notifyBankTransfer() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() {
-      _isProcessing = true;
-    });
-
-    try {
-      // Simulation de notification
-      await Future.delayed(const Duration(seconds: 2));
-      
-      if (mounted) {
-        // Afficher le dialogue de confirmation
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => _buildTransferNotificationDialog(),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur lors de la notification: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isProcessing = false;
-        });
-      }
-    }
-  }
-
-  Widget _buildDepositCodeDialog(String amount) {
-    final depositCode = 'DP${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
-    
-    return AlertDialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(40),
-            ),
-            child: const Icon(
-              Icons.check_circle,
-              size: 50,
-              color: Colors.green,
-            ),
-          )
-              .animate()
-              .scale(duration: 600.ms, curve: Curves.elasticOut),
-          
-          const SizedBox(height: 24),
-          
-          Text(
-            'Code de dépôt généré',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Colors.green,
-            ),
-          ),
-          
-          const SizedBox(height: 16),
-          
-          // Code en gros
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Theme.of(context).primaryColor.withOpacity(0.3),
-              ),
-            ),
-            child: Text(
-              depositCode,
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).primaryColor,
-                letterSpacing: 2,
-              ),
-            ),
-          ),
-          
-          const SizedBox(height: 16),
-          
-          Text(
-            'Montant: $amount XAF',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          
-          const SizedBox(height: 8),
-          
-          Text(
-            'Présentez ce code à l\'agent JAMAA avec votre argent liquide',
-            style: Theme.of(context).textTheme.bodyMedium,
-            textAlign: TextAlign.center,
-          ),
-          
-          const SizedBox(height: 16),
-          
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.orange.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              'Valable pendant 24 heures',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.orange,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          
-          const SizedBox(height: 24),
-          
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    // TODO: Partager le code
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Partage du code à venir')),
-                    );
-                  },
-                  icon: const Icon(Icons.share),
-                  label: const Text('Partager'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Fermer le dialog
-                    Navigator.of(context).pop(); // Retourner à l'écran précédent
-                  },
-                  child: const Text('Terminé'),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTransferNotificationDialog() {
-    return AlertDialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(40),
-            ),
-            child: const Icon(
-              Icons.schedule,
-              size: 50,
-              color: Colors.blue,
-            ),
-          )
-              .animate()
-              .scale(duration: 600.ms, curve: Curves.elasticOut),
-          
-          const SizedBox(height: 24),
-          
-          Text(
-            'Virement notifié',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Colors.blue,
-            ),
-          ),
-          
-          const SizedBox(height: 12),
-          
-          Text(
-            'Nous avons bien reçu votre notification de virement. Votre compte sera crédité dès que nous recevrons les fonds (sous 24h ouvrables).',
-            style: Theme.of(context).textTheme.bodyMedium,
-            textAlign: TextAlign.center,
-          ),
-          
-          const SizedBox(height: 16),
-          
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              'Vous recevrez une notification SMS dès que votre compte sera crédité.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.green,
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          
-          const SizedBox(height: 24),
-          
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
+            duration: const Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'Réessayer',
+              textColor: Colors.white,
               onPressed: () {
-                Navigator.of(context).pop(); // Fermer le dialog
-                Navigator.of(context).pop(); // Retourner à l'écran précédent
+                _makeRecharge(); // Relancer la recharge
               },
-              child: const Text('Compris'),
             ),
           ),
-        ],
-      ),
-    );
+        );
+      }
+    }
+
+  } catch (e) {
+    debugPrint('[DEPOSIT] Exception lors de la recharge: $e');
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Erreur technique',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              Text('Une erreur inattendue s\'est produite: ${e.toString()}'),
+            ],
+          ),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    }
+  } finally {
+    if (mounted) {
+      setState(() {
+        _isProcessing = false;
+      });
+    }
+  }
+}
+
+  // Méthode pour charger les comptes bancaires de l'utilisateur
+  Future<void> _loadUserBankAccounts() async {
+    final cardProvider = Provider.of<CardProvider>(context, listen: false);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    
+    // Vérifier que l'utilisateur est connecté
+    if (authProvider.currentUser == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Vous devez être connecté pour voir vos comptes bancaires'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+    
+    // Récupérer l'ID réel de l'utilisateur connecté
+    final String userId = authProvider.currentUser!.id.toString();
+    
+    debugPrint('[DEPOSIT] Chargement des comptes bancaires pour l\'utilisateur: $userId');
+    
+    await cardProvider.fetchUserBankAccounts(userId);
+    
+    if (cardProvider.error != null) {
+      debugPrint('[DEPOSIT] Erreur lors du chargement: ${cardProvider.error}');
+    } else {
+      debugPrint('[DEPOSIT] ${cardProvider.userBankAccounts.length} comptes bancaires chargés');
+      
+      // Réinitialiser la sélection si nécessaire
+      if (_selectedBankId != null && 
+          !cardProvider.userBankAccounts.any((account) => account.id == _selectedBankId)) {
+        setState(() {
+          _selectedBankId = null;
+          _selectedBankName = null;
+        });
+      }
+    }
   }
 }

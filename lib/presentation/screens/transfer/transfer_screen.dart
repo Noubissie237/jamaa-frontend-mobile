@@ -110,10 +110,12 @@ class _TransferScreenState extends State<TransferScreen>
         centerTitle: true,
         bottom: TabBar(
           controller: _tabController,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.black,
           tabs: const [
             Tab(
               icon: Icon(Icons.person),
-              text: 'Utilisateur',
+              text: 'JAMAA',
             ),
             Tab(
               icon: Icon(Icons.account_balance),

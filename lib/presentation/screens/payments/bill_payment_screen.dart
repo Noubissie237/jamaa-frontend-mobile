@@ -128,7 +128,7 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
             gradient: LinearGradient(
               colors: [
                 Theme.of(context).primaryColor,
-                Theme.of(context).primaryColor.withOpacity(0.8),
+                Theme.of(context).primaryColor.withValues(alpha: 0.8),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -141,7 +141,7 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
               Text(
                 'Solde disponible',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                 ),
               ),
               const SizedBox(height: 8),
@@ -194,7 +194,7 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
             return Card(
               elevation: isSelected ? 8 : 2,
               color: isSelected 
-                  ? Theme.of(context).primaryColor.withOpacity(0.1)
+                  ? Theme.of(context).primaryColor.withValues(alpha: 0.1)
                   : null,
               child: InkWell(
                 onTap: () => _selectService(service),
@@ -208,7 +208,7 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
                         width: 50,
                         height: 50,
                         decoration: BoxDecoration(
-                          color: service.color.withOpacity(0.1),
+                          color: service.color.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(25),
                           border: isSelected
                               ? Border.all(
@@ -238,7 +238,7 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
                       Text(
                         service.description,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                         ),
                         textAlign: TextAlign.center,
                         maxLines: 2,
@@ -413,7 +413,7 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
           Text(
             label,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
           Text(
@@ -576,7 +576,7 @@ class _BillPaymentScreenState extends State<BillPaymentScreen> {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.1),
+              color: Colors.green.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(40),
             ),
             child: const Icon(

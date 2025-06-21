@@ -86,14 +86,14 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
       width: double.infinity,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [theme.primaryColor, theme.primaryColor.withOpacity(0.8)],
+          colors: [theme.primaryColor, theme.primaryColor.withValues(alpha: 0.8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: theme.primaryColor.withOpacity(0.3),
+            color: theme.primaryColor.withValues(alpha: 0.3),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -108,9 +108,9 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(40),
-                border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 2),
               ),
               child: Icon(
                 _getTransferIcon(transferType),
@@ -121,7 +121,7 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
                 .animate()
                 .scale(duration: 600.ms, curve: Curves.elasticOut)
                 .then(delay: 200.ms)
-                .shimmer(duration: 1000.ms, color: Colors.white.withOpacity(0.5)),
+                .shimmer(duration: 1000.ms, color: Colors.white.withValues(alpha: 0.5)),
             
             const SizedBox(height: 20),
             
@@ -145,7 +145,7 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
               _getTransferDescription(transferType),
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w500,
-                color: Colors.white.withOpacity(0.9),
+                color: Colors.white.withValues(alpha: 0.9),
               ),
               textAlign: TextAlign.center,
             )
@@ -159,9 +159,9 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white.withOpacity(0.3)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -262,14 +262,14 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 20, color: theme.primaryColor.withOpacity(0.7)),
+          Icon(icon, size: 20, color: theme.primaryColor.withValues(alpha: 0.7)),
           const SizedBox(width: 12),
           SizedBox(
             width: 120,
             child: Text(
               label,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.7),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -327,9 +327,9 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: theme.primaryColor.withOpacity(0.1),
+                color: theme.primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: theme.primaryColor.withOpacity(0.2)),
+                border: Border.all(color: theme.primaryColor.withValues(alpha: 0.2)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -421,7 +421,7 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
                 counterText: '',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: theme.primaryColor.withOpacity(0.3)),
+                  borderSide: BorderSide(color: theme.primaryColor.withValues(alpha: 0.3)),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -437,7 +437,7 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
               decoration: BoxDecoration(
                 color: Colors.blue[50],
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.withOpacity(0.2)),
+                border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
               ),
               child: Row(
                 children: [
@@ -489,7 +489,7 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: (isLoading ? Colors.grey : Colors.green).withOpacity(0.3),
+                      color: (isLoading ? Colors.grey : Colors.green).withValues(alpha: 0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 3),
                     ),
@@ -888,7 +888,7 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
                 .animate()
                 .scale(duration: 600.ms, curve: Curves.elasticOut)
                 .then(delay: 200.ms)
-                .shimmer(duration: 1000.ms, color: Colors.green.withOpacity(0.3)),
+                .shimmer(duration: 1000.ms, color: Colors.green.withValues(alpha: 0.3)),
             const SizedBox(height: 16),
             Text(
               'Transfert réussi !',

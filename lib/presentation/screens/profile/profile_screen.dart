@@ -68,7 +68,7 @@ class ProfileScreen extends StatelessWidget {
                         gradient: LinearGradient(
                           colors: [
                             theme.primaryColor,
-                            theme.primaryColor.withOpacity(0.7),
+                            theme.primaryColor.withValues(alpha: 0.7),
                           ],
                         ),
                       ),
@@ -136,7 +136,7 @@ class ProfileScreen extends StatelessWidget {
             Text(
                   user.email,
                   style: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                 )
                 .animate()
@@ -154,14 +154,14 @@ class ProfileScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color:
                         user.isVerified
-                            ? Colors.green.withOpacity(0.1)
-                            : Colors.orange.withOpacity(0.1),
+                            ? Colors.green.withValues(alpha: 0.1)
+                            : Colors.orange.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color:
                           user.isVerified
-                              ? Colors.green.withOpacity(0.3)
-                              : Colors.orange.withOpacity(0.3),
+                              ? Colors.green.withValues(alpha: 0.3)
+                              : Colors.orange.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Row(
@@ -332,7 +332,7 @@ class ProfileScreen extends StatelessWidget {
         Text(
           'Version 1.0.0',
           style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurface.withOpacity(0.5),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
           ),
         ).animate().fadeIn(delay: 1000.ms, duration: 600.ms),
       ],

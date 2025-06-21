@@ -37,7 +37,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: theme.primaryColor.withOpacity(0.1),
+                  color: theme.primaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(50),
                 ),
                 child: Icon(
@@ -73,7 +73,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
                     ? 'Saisissez à nouveau votre code PIN'
                     : 'Choisissez un code PIN à 4 chiffres pour sécuriser votre compte',
                 style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onBackground.withOpacity(0.7),
+                  color: theme.colorScheme.onBackground.withValues(alpha: 0.7),
                 ),
                 textAlign: TextAlign.center,
               )
@@ -117,7 +117,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
         shape: BoxShape.circle,
         color: isFilled ? Theme.of(context).primaryColor : Colors.transparent,
         border: Border.all(
-          color: Theme.of(context).primaryColor.withOpacity(0.5),
+          color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
           width: 2,
         ),
       ),
@@ -206,7 +206,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
             shape: BoxShape.circle,
             color: Theme.of(context).cardColor,
             border: Border.all(
-              color: Theme.of(context).dividerColor.withOpacity(0.2),
+              color: Theme.of(context).dividerColor.withValues(alpha: 0.2),
             ),
           ),
           child: Center(

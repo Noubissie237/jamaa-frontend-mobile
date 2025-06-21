@@ -88,7 +88,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         decoration: BoxDecoration(
                           color: _currentPage == index
                               ? theme.primaryColor
-                              : theme.primaryColor.withOpacity(0.3),
+                              : theme.primaryColor.withValues(alpha: 0.3),
                           borderRadius: BorderRadius.circular(4),
                         ),
                       )
@@ -150,7 +150,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: page.color.withOpacity(0.1),
+              color: page.color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(60),
             ),
             child: Icon(
@@ -162,7 +162,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               .animate()
               .scale(duration: 600.ms, curve: Curves.elasticOut)
               .then(delay: 200.ms)
-              .shimmer(duration: 1000.ms, color: page.color.withOpacity(0.3)),
+              .shimmer(duration: 1000.ms, color: page.color.withValues(alpha: 0.3)),
 
           const SizedBox(height: 48),
 
@@ -186,7 +186,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             page.description,
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyLarge?.copyWith(
-              color: theme.colorScheme.onBackground.withOpacity(0.7),
+              color: theme.colorScheme.onBackground.withValues(alpha: 0.7),
               height: 1.5,
             ),
           )

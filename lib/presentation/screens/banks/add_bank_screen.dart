@@ -131,7 +131,7 @@ class _AddBankScreenState extends State<AddBankScreen> {
                   Icon(
                     Icons.account_balance_outlined,
                     size: 64,
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -143,7 +143,7 @@ class _AddBankScreenState extends State<AddBankScreen> {
                     'Vous êtes déjà inscrit à toutes les banques disponibles ou aucune banque n\'est configurée.',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -248,7 +248,7 @@ class _AddBankScreenState extends State<AddBankScreen> {
         Text(
           'Sélectionnez la banque où vous souhaitez ouvrir un compte (${availableBanks.length} banque${availableBanks.length > 1 ? 's' : ''} disponible${availableBanks.length > 1 ? 's' : ''})',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
           ),
         )
             .animate()
@@ -294,7 +294,7 @@ class _AddBankScreenState extends State<AddBankScreen> {
                           width: 50,
                           height: 50,
                           decoration: BoxDecoration(
-                            color: Theme.of(context).primaryColor.withOpacity(0.1),
+                            color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(25),
                           ),
                           child: Center(
@@ -331,7 +331,7 @@ class _AddBankScreenState extends State<AddBankScreen> {
                                 Text(
                                   bank.slogan,
                                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                                     fontStyle: FontStyle.italic,
                                   ),
                                   maxLines: 2,
@@ -342,7 +342,7 @@ class _AddBankScreenState extends State<AddBankScreen> {
                               Text(
                                 'Solde minimum: ${bank.minimumBalance.toStringAsFixed(0)} FCFA',
                                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                                 ),
                               ),
                             ],
@@ -360,7 +360,7 @@ class _AddBankScreenState extends State<AddBankScreen> {
                             border: Border.all(
                               color: isSelected 
                                   ? Theme.of(context).primaryColor
-                                  : Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+                                  : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
                               width: 2,
                             ),
                             color: isSelected 

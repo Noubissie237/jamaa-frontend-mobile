@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:jamaa_frontend_mobile/core/providers/card_provider.dart';
+import 'package:jamaa_frontend_mobile/core/providers/recharge_retrait_provider.dart';
 import 'package:jamaa_frontend_mobile/core/providers/transfert_provider.dart'; 
 import 'package:provider/provider.dart';
 
@@ -31,6 +32,7 @@ class JamaaApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => TransactionProvider()),
         ChangeNotifierProvider(create: (_) => TransfertProvider()),
         ChangeNotifierProvider(create: (_) => CardProvider()),
+        ChangeNotifierProvider(create: (_) => RechargeRetraitProvider()),
       ],
       child: Consumer<SettingsProvider>(
         builder: (context, settingsProvider, child) {

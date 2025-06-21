@@ -93,7 +93,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
               Text(
                 '$unreadCount non lues',
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.7),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
               ),
           ],
@@ -204,7 +204,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
             Icon(
               Icons.notifications_none,
               size: 64,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
@@ -217,7 +217,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
             Text(
               'Vos notifications apparaîtront ici',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
               ),
             ),
           ],
@@ -244,7 +244,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     return Card(
           margin: const EdgeInsets.symmetric(vertical: 4),
           color:
-              notification.isRead ? null : theme.primaryColor.withOpacity(0.05),
+              notification.isRead ? null : theme.primaryColor.withValues(alpha: 0.05),
           child: InkWell(
             onTap: () => _onNotificationTap(notification),
             borderRadius: BorderRadius.circular(12),
@@ -260,7 +260,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                     decoration: BoxDecoration(
                       color: _getNotificationColor(
                         notification.type,
-                      ).withOpacity(0.1),
+                      ).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Icon(
@@ -307,7 +307,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                         Text(
                           notification.message,
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface.withOpacity(0.7),
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -321,7 +321,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                             Text(
                               _formatTime(notification.createdAt),
                               style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurface.withOpacity(
+                                color: theme.colorScheme.onSurface.withValues(alpha: 
                                   0.5,
                                 ),
                                 fontSize: 11,
@@ -340,7 +340,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                                           : Icons.mark_email_read,
                                       size: 16,
                                       color: theme.colorScheme.onSurface
-                                          .withOpacity(0.5),
+                                          .withValues(alpha: 0.5),
                                     ),
                                   ),
                                 ),
@@ -353,7 +353,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                                     child: Icon(
                                       Icons.delete_outline,
                                       size: 16,
-                                      color: Colors.red.withOpacity(0.7),
+                                      color: Colors.red.withValues(alpha: 0.7),
                                     ),
                                   ),
                                 ),
@@ -475,7 +475,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(
                       context,
-                    ).colorScheme.onSurface.withOpacity(0.6),
+                    ).colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
                 ),
               ],

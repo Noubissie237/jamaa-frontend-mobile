@@ -60,6 +60,8 @@ class _TransactionsScreenState extends State<TransactionsScreen>
         ],
         bottom: TabBar(
           controller: _tabController,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.black,
           tabs: const [
             Tab(text: 'Toutes'),
             Tab(text: 'Entrées'),
@@ -160,12 +162,12 @@ class _TransactionsScreenState extends State<TransactionsScreen>
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                  color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                 ),
                 child: Icon(
                   isFilteredEmpty ? Icons.search_off : Icons.receipt_long_outlined,
                   size: 64,
-                  color: Theme.of(context).primaryColor.withOpacity(0.7),
+                  color: Theme.of(context).primaryColor.withValues(alpha: 0.7),
                 ),
               ),
               const SizedBox(height: 24),
@@ -182,7 +184,7 @@ class _TransactionsScreenState extends State<TransactionsScreen>
                     ? 'Aucune transaction ne correspond à vos critères de recherche. Essayez de modifier vos filtres.'
                     : emptyMessage,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
                 textAlign: TextAlign.center,
               ),

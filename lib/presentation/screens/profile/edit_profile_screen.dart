@@ -145,7 +145,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     gradient: LinearGradient(
                       colors: [
                         Theme.of(context).primaryColor,
-                        Theme.of(context).primaryColor.withOpacity(0.7),
+                        Theme.of(context).primaryColor.withValues(alpha: 0.7),
                       ],
                     ),
                   ),
@@ -372,9 +372,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
+                color: Colors.blue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [

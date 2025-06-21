@@ -100,7 +100,7 @@ Text(
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
-                  color: option.color.withOpacity(0.1),
+                  color: option.color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(30),
                 ),
                 child: Icon(
@@ -121,7 +121,7 @@ Text(
               Text(
                 option.description,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -204,7 +204,7 @@ Text(
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: category.color.withOpacity(0.1),
+            color: category.color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Icon(
@@ -225,7 +225,7 @@ Text(
               width: 35,
               height: 35,
               decoration: BoxDecoration(
-                color: service.color.withOpacity(0.1),
+                color: service.color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(17.5),
               ),
               child: Icon(
@@ -309,7 +309,7 @@ Text(
               color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Theme.of(context).dividerColor.withOpacity(0.2),
+                color: Theme.of(context).dividerColor.withValues(alpha: 0.2),
               ),
             ),
             child: Column(
@@ -317,7 +317,7 @@ Text(
                 Icon(
                   Icons.payment_outlined,
                   size: 48,
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
                 ),
                 const SizedBox(height: 12),
                 Text(
@@ -330,7 +330,7 @@ Text(
                 Text(
                   'Vos paiements apparaîtront ici',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -358,7 +358,7 @@ Text(
           width: 45,
           height: 45,
           decoration: BoxDecoration(
-            color: payment.color.withOpacity(0.1),
+            color: payment.color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(22.5),
           ),
           child: Icon(
@@ -392,7 +392,7 @@ Text(
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
+                color: Colors.green.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
@@ -462,7 +462,7 @@ Text(
                 width: 50,
                 height: 50,
                 decoration: BoxDecoration(
-                  color: service.color.withOpacity(0.1),
+                  color: service.color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(25),
                 ),
                 child: Icon(
@@ -485,7 +485,7 @@ Text(
                     Text(
                       service.description,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -531,9 +531,9 @@ Text(
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
+                      color: Colors.blue.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                      border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
                     ),
                     child: Row(
                       children: [

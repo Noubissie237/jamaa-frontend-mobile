@@ -10,7 +10,7 @@ Widget buildQuickAmounts(BuildContext context, TextEditingController controller)
           'Montants rapides',
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w600,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
           ),
         ),
         const SizedBox(height: 8),
@@ -26,7 +26,7 @@ Widget buildQuickAmounts(BuildContext context, TextEditingController controller)
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color: Theme.of(context).primaryColor.withOpacity(0.3),
+                    color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
                   ),
                   borderRadius: BorderRadius.circular(20),
                 ),
