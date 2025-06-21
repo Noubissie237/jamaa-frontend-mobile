@@ -37,13 +37,6 @@ class BankDetailsScreen extends StatelessWidget {
                 
                 const SizedBox(height: 24),
                 
-                _buildMinimumBalanceSection(theme)
-                    .animate()
-                    .fadeIn(delay: 600.ms, duration: 600.ms)
-                    .slideY(begin: 0.3, end: 0),
-                
-                const SizedBox(height: 24),
-                
                 _buildBankInfoSection(theme)
                     .animate()
                     .fadeIn(delay: 800.ms, duration: 600.ms)
@@ -265,65 +258,6 @@ class BankDetailsScreen extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildMinimumBalanceSection(ThemeData theme) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.account_balance_outlined,
-                  color: theme.colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Solde minimum requis',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primaryContainer.withValues(alpha: 0.09),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                ),
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    '${bank.minimumBalance.toStringAsFixed(0)} FCFA',
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Montant minimum à maintenir sur votre compte',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
