@@ -183,6 +183,8 @@ class AuthProvider extends ChangeNotifier {
           isVerified: payloadMap['isVerified'] ?? false,
         );
 
+        refreshUserData(); // Pour récupérer le status (isVerified)
+
         debugPrint('[LOGIN] Utilisateur connecté : ${_currentUser?.email}');
         _isAuthenticated = true;
         notifyListeners();

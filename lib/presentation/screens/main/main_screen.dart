@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:jamaa_frontend_mobile/core/providers/auth_provider.dart';
+import 'package:provider/provider.dart';
 
 import '../dashboard/dashboard_screen.dart';
 import '../transactions/transactions_screen.dart';
@@ -22,6 +24,12 @@ class _MainScreenState extends State<MainScreen> {
     const TransferScreen(),
     const ProfileScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<AuthProvider>().refreshUserData();
+  }
 
   final List<BottomNavigationBarItem> _navigationItems = [
     const BottomNavigationBarItem(
