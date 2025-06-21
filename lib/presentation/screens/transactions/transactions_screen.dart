@@ -92,9 +92,9 @@ class _TransactionsScreenState extends State<TransactionsScreen>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    transactionProvider.error! as String,
+                    'Service indisponible, veuillez reessayer plus tard',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurface.withOpacity(0.7),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -113,19 +113,28 @@ class _TransactionsScreenState extends State<TransactionsScreen>
             );
           }
 
+          // Vérifier si toutes les transactions sont vides
+          final hasAnyTransactions = transactionProvider.transactions.isNotEmpty;
+          final hasIncomeTransactions = transactionProvider.transactions.any((t) => t.amount > 0);
+          final hasExpenseTransactions = transactionProvider.transactions.any((t) => t.amount < 0);
+
           return TabBarView(
             controller: _tabController,
             children: [
-              _buildTransactionsList(transactionProvider.transactions),
               _buildTransactionsList(
-                transactionProvider.transactions
-                    .where((t) => t.amount > 0)
-                    .toList(),
+                transactionProvider.transactions,
+                hasAnyTransactions,
+                'Commencez à effectuer des transactions pour les voir apparaître ici.',
               ),
               _buildTransactionsList(
-                transactionProvider.transactions
-                    .where((t) => t.amount < 0)
-                    .toList(),
+                transactionProvider.transactions.where((t) => t.amount > 0).toList(),
+                hasIncomeTransactions,
+                'Vos revenus et dépôts apparaîtront dans cet onglet.',
+              ),
+              _buildTransactionsList(
+                transactionProvider.transactions.where((t) => t.amount < 0).toList(),
+                hasExpenseTransactions,
+                'Vos dépenses et retraits apparaîtront dans cet onglet.',
               ),
             ],
           );
@@ -134,32 +143,72 @@ class _TransactionsScreenState extends State<TransactionsScreen>
     );
   }
 
-  Widget _buildTransactionsList(List<Transaction> transactions) {
+  Widget _buildTransactionsList(List<Transaction> transactions, bool hasTransactions, String emptyMessage) {
     final filteredTransactions = _applyFilters(transactions);
 
     if (filteredTransactions.isEmpty) {
+      // Différencier entre "pas de transactions du tout" et "pas de résultats après filtrage"
+      final isFilteredEmpty = transactions.isNotEmpty && filteredTransactions.isEmpty;
+      
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.receipt_long_outlined,
-              size: 64,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Aucune transaction',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Vos transactions apparaîtront ici',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                ),
+                child: Icon(
+                  isFilteredEmpty ? Icons.search_off : Icons.receipt_long_outlined,
+                  size: 64,
+                  color: Theme.of(context).primaryColor.withOpacity(0.7),
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 24),
+              Text(
+                isFilteredEmpty ? 'Aucun résultat' : 'Aucune transaction',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                isFilteredEmpty 
+                    ? 'Aucune transaction ne correspond à vos critères de recherche. Essayez de modifier vos filtres.'
+                    : emptyMessage,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              if (isFilteredEmpty)
+                OutlinedButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _selectedFilter = null;
+                      _selectedDateRange = null;
+                    });
+                  },
+                  icon: const Icon(Icons.clear_all),
+                  label: const Text('Effacer les filtres'),
+                )
+              else
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // Navigation vers l'écran de création de transaction ou d'accueil
+                    context.go('/main/home');
+                  },
+                  icon: const Icon(Icons.add),
+                  label: const Text('Commencer'),
+                ),
+            ],
+          ),
         ),
       )
           .animate()
