@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../widgets/custom_text_field.dart';
 
@@ -321,8 +322,33 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
     });
   }
 
-  void _changePin() {
-    // TODO: Implémenter le changement de code PIN
+  Future<void> _changePin() async {
+    
+    final prefs = await SharedPreferences.getInstance();
+    final pin = prefs.getString('user_pin');
+    
+    if(pin != _currentPinController.text.trim()) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+          content: Text('Code PIN incorrect'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if(_newPinController.text.trim() != _confirmPinController.text.trim()){
+              ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+          content: Text('Les codes PIN ne correspondent pas'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    prefs.setString('user_pin', _confirmPinController.text.trim());
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Code PIN modifié avec succès'),
