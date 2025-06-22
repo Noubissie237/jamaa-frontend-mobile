@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:jamaa_frontend_mobile/core/constants/api_constants.dart';
 import 'dart:convert';
+import 'package:jamaa_frontend_mobile/utils/utils.dart';
 
 // Classe pour les erreurs de service
 class AccountServiceError {
@@ -38,7 +39,7 @@ class AccountService {
       debugPrint('[ACCOUNT_SERVICE] Recherche du compte pour le numéro: $phoneNumber');
       
       // Étape 1 : Récupérer l'ID du client par numéro de téléphone
-      final customerResult = await _getCustomerIdByPhone(phoneNumber);
+      final customerResult =  !isNumber(phoneNumber) ? await _getCustomerIdByAccountNumber(phoneNumber) : await _getCustomerIdByPhone(phoneNumber);
       if (!customerResult.isSuccess || customerResult.data == null) {
         debugPrint('[ACCOUNT_SERVICE] Erreur lors de la récupération du client: ${customerResult.error?.message}');
         return null;
@@ -64,68 +65,54 @@ class AccountService {
       return null;
     }
   }
-  
-  /// Version avec gestion d'erreur détaillée
-  /// 
-  /// Retourne un ServiceResult avec les détails de l'erreur
-  static Future<ServiceResult<String>> getAccountIdByPhoneWithError(String phoneNumber) async {
+
+  // Méthode privée pour récupérer l'ID du client par account Number
+  static Future<ServiceResult<String>> _getCustomerIdByAccountNumber(String accountNumber) async {
     try {
-      debugPrint('[ACCOUNT_SERVICE] Recherche du compte pour le numéro: $phoneNumber');
+      const String endpoint = ApiConstants.accountServiceUrl;
+      final String query = '''
+        query {
+          getAccountByAccountNumber(accountNumber: "$accountNumber") {
+            userId
+          }
+        }
+      ''';
+
+      final response = await _makeGraphQLRequest(endpoint, query);
       
-      // Validation du numéro de téléphone
-      if (phoneNumber.trim().isEmpty) {
-        return ServiceResult.failure(AccountServiceError(
-          message: 'Numéro de téléphone invalide',
-          details: 'Le numéro de téléphone ne peut pas être vide',
-          type: 'VALIDATION_ERROR',
-        ));
+      if (!response.isSuccess) {
+        return ServiceResult.failure(response.error!);
       }
-      
-      // Étape 1 : Récupérer l'ID du client par numéro de téléphone
-      final customerResult = await _getCustomerIdByPhone(phoneNumber);
-      if (!customerResult.isSuccess) {
-        return ServiceResult.failure(customerResult.error!);
-      }
-      
-      if (customerResult.data == null) {
+
+      final customerData = response.data?['data']?['getAccountByAccountNumber'];
+      if (customerData == null) {
         return ServiceResult.failure(AccountServiceError(
           message: 'Client non trouvé',
-          details: 'Aucun client trouvé avec ce numéro de téléphone',
+          details: 'Aucun client avec le numéro de compte $accountNumber',
           type: 'CUSTOMER_NOT_FOUND',
         ));
       }
-      
-      final customerId = customerResult.data!;
-      debugPrint('[ACCOUNT_SERVICE] ID client trouvé: $customerId');
-      
-      // Étape 2 : Récupérer l'ID du compte par ID client
-      final accountResult = await _getAccountIdByUserId(customerId);
-      if (!accountResult.isSuccess) {
-        return ServiceResult.failure(accountResult.error!);
-      }
-      
-      if (accountResult.data == null) {
+
+      final customerId = customerData['userId']?.toString();
+      if (customerId == null || customerId.isEmpty) {
         return ServiceResult.failure(AccountServiceError(
-          message: 'Compte non trouvé',
-          details: 'Aucun compte trouvé pour ce client',
-          type: 'ACCOUNT_NOT_FOUND',
+          message: 'ID client invalide',
+          details: 'L\'ID du client est null ou vide',
+          type: 'INVALID_CUSTOMER_ID',
         ));
       }
-      
-      final accountId = accountResult.data!;
-      debugPrint('[ACCOUNT_SERVICE] ID compte trouvé: $accountId');
-      
-      return ServiceResult.success(accountId);
-      
+
+      return ServiceResult.success(customerId);
+
     } catch (e) {
-      debugPrint('[ACCOUNT_SERVICE] Erreur inattendue: $e');
+      debugPrint('[ACCOUNT_SERVICE] Erreur lors de la récupération du client: $e');
       return ServiceResult.failure(AccountServiceError(
-        message: 'Erreur inattendue',
+        message: 'Erreur lors de la récupération du client',
         details: e.toString(),
-        type: 'UNEXPECTED_ERROR',
+        type: 'CUSTOMER_FETCH_ERROR',
       ));
     }
-  }
+  }  
 
   // Méthode privée pour récupérer l'ID du client par téléphone
   static Future<ServiceResult<String>> _getCustomerIdByPhone(String phoneNumber) async {

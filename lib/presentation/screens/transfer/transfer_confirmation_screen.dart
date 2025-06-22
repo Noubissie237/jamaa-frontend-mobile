@@ -675,10 +675,10 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
 
       // Étape 2: Récupérer l'ID du compte bénéficiaire
       debugPrint('[TRANSFER] Récupération de l\'ID du compte bénéficiaire...');
-      final receiverAccountId = await AccountService.getAccountIdByPhone(recipientPhone);
+      final receiverAccountId = await  AccountService.getAccountIdByPhone(recipientPhone);
       
       if (receiverAccountId == null) {
-        _showErrorDialog('Le bénéficiaire n\'a pas été trouvé. Vérifiez le numéro de téléphone.');
+        _showErrorDialog('Le bénéficiaire n\'a pas été trouvé. Vérifiez le numéro bénéficiaire.');
         return;
       }
       
