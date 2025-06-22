@@ -11,7 +11,7 @@ import 'package:jamaa_frontend_mobile/presentation/widgets/qr_scanner_screen.dar
 // Enum pour les types de bénéficiaire
 enum BeneficiaryType {
   phone('Téléphone', Icons.phone, 'ex: 690232120'),
-  account('Numéro de compte', Icons.credit_card, 'ex: 1234567890'),
+  account('Numéro de compte', Icons.credit_card, 'ex: 2025-DOF606'),
   scan('Scanner QR Code', Icons.qr_code_scanner, 'Scanner un code QR');
 
   const BeneficiaryType(this.label, this.icon, this.hint);
