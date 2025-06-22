@@ -1,10 +1,10 @@
 class User {
   final int id;
-  final String firstName;
-  final String lastName;
-  final String email;
-  final String phone;
-  final String? cniNumber;
+  String firstName;
+  String lastName;
+  String email;
+  String phone;
+  String? cniNumber;
   final String? cniRectoImage;
   final String? cniVersoImage;
   final String? profilePicture;

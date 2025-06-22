@@ -98,25 +98,7 @@ class ProfileScreen extends StatelessWidget {
                                       ),
                                 ),
                       ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: theme.primaryColor,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
-                        ),
-                        child: const Icon(
-                          Icons.camera_alt,
-                          size: 16,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
+                    )
                   ],
                 )
                 .animate()

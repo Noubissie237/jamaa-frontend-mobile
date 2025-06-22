@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:jamaa_frontend_mobile/core/models/user.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/providers/auth_provider.dart';
@@ -80,7 +81,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     // final theme = Theme.of(context);
-    
+    final user = context.read<AuthProvider>().currentUser;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Modifier le profil'),
@@ -105,7 +106,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               const SizedBox(height: 32),
               
               // Informations personnelles
-              _buildPersonalInfoSection(),
+              _buildPersonalInfoSection(user),
               
               const SizedBox(height: 24),
               
@@ -115,7 +116,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               const SizedBox(height: 24),
               
               // Document d'identité
-              _buildIdentitySection(),
+              _buildIdentitySection(user),
               
               const SizedBox(height: 32),
               
@@ -169,48 +170,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                   ),
                 ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 3),
-                    ),
-                    child: IconButton(
-                      onPressed: _changeProfilePicture,
-                      icon: const Icon(
-                        Icons.camera_alt,
-                        size: 20,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
               ],
             )
                 .animate()
                 .scale(duration: 600.ms, curve: Curves.elasticOut),
             
-            const SizedBox(height: 16),
-            
-            TextButton.icon(
-              onPressed: _changeProfilePicture,
-              icon: const Icon(Icons.edit),
-              label: const Text('Changer la photo'),
-            )
-                .animate()
-                .fadeIn(delay: 300.ms, duration: 600.ms),
           ],
         );
       },
     );
   }
 
-  Widget _buildPersonalInfoSection() {
+  Widget _buildPersonalInfoSection(User? user) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -234,6 +205,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   child: CustomTextField(
                     controller: _firstNameController,
                     label: 'Prénom',
+                    enabled: !user!.isVerified,
                     prefixIcon: Icons.person_outline,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -251,6 +223,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   child: CustomTextField(
                     controller: _lastNameController,
                     label: 'Nom',
+                    enabled: !user.isVerified,
                     prefixIcon: Icons.person_outline,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -334,7 +307,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Widget _buildIdentitySection() {
+  Widget _buildIdentitySection(User? user) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -355,6 +328,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             CustomTextField(
               controller: _cniController,
               label: 'Numéro CNI',
+              enabled: !user!.isVerified,
               prefixIcon: Icons.badge_outlined,
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -403,67 +377,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             .fadeIn(delay: 1400.ms, duration: 600.ms)
             .slideY(begin: 0.3, end: 0),
       ],
-    );
-  }
-
-  void _changeProfilePicture() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Changer la photo de profil',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Prendre une photo'),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: Implémenter la prise de photo
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Prise de photo à venir')),
-                );
-              },
-            ),
-            
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Choisir depuis la galerie'),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: Implémenter la sélection depuis la galerie
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Sélection galerie à venir')),
-                );
-              },
-            ),
-            
-            if (context.read<AuthProvider>().currentUser?.profilePicture != null)
-              ListTile(
-                leading: const Icon(Icons.delete, color: Colors.red),
-                title: const Text('Supprimer la photo', style: TextStyle(color: Colors.red)),
-                onTap: () {
-                  Navigator.pop(context);
-                  // TODO: Implémenter la suppression de photo
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Suppression de photo à venir')),
-                  );
-                },
-              ),
-          ],
-        ),
-      ),
     );
   }
 

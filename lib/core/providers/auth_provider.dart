@@ -98,6 +98,7 @@ class AuthProvider extends ChangeNotifier {
           email
           phone
           isVerified
+          cniNumber
         }
       }
       ''';
@@ -112,6 +113,11 @@ class AuthProvider extends ChangeNotifier {
       }
       if (data['data'] != null) {
         _currentUser!.isVerified = data['data']['getCustomerById']['isVerified'];
+        _currentUser!.cniNumber = data['data']['getCustomerById']['cniNumber'];
+        _currentUser!.firstName = data['data']['getCustomerById']['firstName'];
+        _currentUser!.lastName = data['data']['getCustomerById']['lastName'];
+        _currentUser!.email = data['data']['getCustomerById']['email'];
+        _currentUser!.phone = data['data']['getCustomerById']['phone'];
         notifyListeners();
       }
     } catch (e) {
