@@ -388,38 +388,138 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     });
 
     try {
-      // Simulation de sauvegarde
-      await Future.delayed(const Duration(seconds: 2));
-      
-      // TODO: Implémenter la sauvegarde réelle via AuthProvider
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profil mis à jour avec succès'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        
-        setState(() {
-          _hasChanges = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur lors de la sauvegarde: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+      await authProvider.updateProfile(
+        _emailController.text.trim(),
+        _phoneController.text.trim(),
+        _cniController.text.trim(),
+        _firstNameController.text.trim(),
+        _lastNameController.text.trim(),
+      );
+
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
+
+        // Message de succès
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(
+                  Icons.check_circle,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Profil mis à jour avec succès !',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            margin: const EdgeInsets.all(16),
+            action: SnackBarAction(
+              label: 'OK',
+              textColor: Colors.white,
+              onPressed: () {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              },
+            ),
+          ),
+        );
       }
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        // Message d'erreur
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(
+                  Icons.error,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Erreur lors de la mise à jour',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _getErrorMessage(error.toString()),
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            margin: const EdgeInsets.all(16),
+            action: SnackBarAction(
+              label: 'Réessayer',
+              textColor: Colors.white,
+              onPressed: () {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                _saveChanges(); // Réessayer
+              },
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  // Fonction helper pour formater les messages d'erreur
+  String _getErrorMessage(String error) {
+    // Personnaliser les messages d'erreur selon les cas
+    if (error.contains('network')) {
+      return 'Problème de connexion. Vérifiez votre internet.';
+    } else if (error.contains('email')) {
+      return 'Format d\'email invalide.';
+    } else if (error.contains('phone')) {
+      return 'Numéro de téléphone invalide.';
+    } else if (error.contains('CNI')) {
+      return 'Numéro CNI invalide.';
+    } else if (error.contains('server')) {
+      return 'Erreur serveur. Veuillez réessayer plus tard.';
+    } else {
+      return 'Une erreur inattendue s\'est produite.';
     }
   }
 

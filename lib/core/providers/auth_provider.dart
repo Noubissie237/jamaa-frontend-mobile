@@ -446,7 +446,39 @@ Future<void> register({
   }
 }
 
+Future<void> updateProfile(String email, String phone, String cniNumber, String firstName, String lastName) async {
+  _setLoading(true);
 
+  final mutation = '''
+    mutation {
+      updateCustomer(id: "${_currentUser?.id}", email: "$email", phone: "$phone", cniNumber: "$cniNumber", firstName: "$firstName", lastName: "$lastName") {
+        id
+        email
+        phone
+        cniNumber
+        firstName
+        lastName
+      }
+    }
+  ''';
+
+  final response = await http.post(
+    Uri.parse(ApiConstants.register),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({'query': mutation}),
+  );
+
+  final data = jsonDecode(response.body);
+
+  if (data['errors'] != null) {
+    throw Exception(data['errors'][0]['message']);
+  }
+
+  if (response.statusCode == 200) {
+    refreshUserData();
+  }
+
+}
 
 Future<void> logout() async {
   debugPrint('🚪 [LOGOUT] Début de la déconnexion...');
