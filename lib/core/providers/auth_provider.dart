@@ -1,3 +1,5 @@
+import 'dart:core';
+
 import 'package:flutter/foundation.dart';
 import '../models/user.dart';
 import 'package:http/http.dart' as http;
@@ -446,6 +448,35 @@ Future<void> register({
   }
 }
 
+Future<void> updatePassword(String password) async {
+  _setLoading(true);
+  final mutation = '''
+    mutation {
+      updateCustomerPassword(id: "${_currentUser?.id}", password: "$password") {
+        id
+        password
+      }
+    }
+  ''';
+
+  final response = await http.post(
+    Uri.parse(ApiConstants.register),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({'query': mutation}),
+  );
+
+  final data = jsonDecode(response.body);
+
+  if (data['errors'] != null) {
+    throw Exception(data['errors'][0]['message']);
+  }
+
+  if (response.statusCode == 200) {
+    refreshUserData();
+    _setLoading(false);
+  }
+}
+
 Future<void> updateProfile(String email, String phone, String cniNumber, String firstName, String lastName) async {
   _setLoading(true);
 
@@ -476,6 +507,7 @@ Future<void> updateProfile(String email, String phone, String cniNumber, String 
 
   if (response.statusCode == 200) {
     refreshUserData();
+    _setLoading(false);
   }
 
 }
