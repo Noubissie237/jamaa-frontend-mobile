@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:jamaa_frontend_mobile/core/providers/auth_provider.dart';
 import 'package:jamaa_frontend_mobile/core/providers/card_provider.dart';
 import 'package:jamaa_frontend_mobile/core/providers/recharge_retrait_provider.dart';
+import 'package:jamaa_frontend_mobile/utils/utils.dart';
 import 'package:provider/provider.dart';
 import '../../../core/providers/dashboard_provider.dart';
 import '../../widgets/custom_text_field.dart';
@@ -222,13 +223,7 @@ class _WithdrawScreenState extends State<WithdrawScreen>
                     const SizedBox(height: 16),
                     ElevatedButton.icon(
                       onPressed: () {
-                        // Navigation vers l'écran de liaison de compte bancaire
-                        // Navigator.pushNamed(context, '/link-bank-account');
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Fonctionnalité de liaison de compte à venir'),
-                          ),
-                        );
+                        executeActionWithVerification(context, ()=> context.go('/main/banks/add'));
                       },
                       icon: const Icon(Icons.add),
                       label: const Text('Lier un compte bancaire'),
