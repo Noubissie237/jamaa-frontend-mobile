@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:jamaa_frontend_mobile/core/providers/auth_provider.dart';
 import 'package:jamaa_frontend_mobile/presentation/widgets/build_accounts_summary.dart';
+import 'package:jamaa_frontend_mobile/utils/utils.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jamaa_frontend_mobile/core/providers/bank_provider.dart';
@@ -42,7 +43,7 @@ class _BanksScreenState extends State<BanksScreen> {
         centerTitle: true,
         actions: [
           IconButton(
-            onPressed: () => context.go('/main/banks/add'),
+            onPressed: () => executeActionWithVerification(context, () => context.go('/main/banks/add')),
             icon: const Icon(Icons.add),
           ),
         ],

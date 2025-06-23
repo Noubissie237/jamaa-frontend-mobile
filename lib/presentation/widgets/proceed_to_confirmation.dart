@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:jamaa_frontend_mobile/utils/utils.dart';
 
 void proceedToConfirmation(
   String transferType, 
@@ -60,5 +61,5 @@ void proceedToConfirmation(
   }
 
   // Navigation vers la page de confirmation
-  context.go('/main/transfer/confirmation', extra: transferData);
+  executeActionWithVerification(context, () => context.go('/main/transfer/confirmation', extra: transferData));
 }

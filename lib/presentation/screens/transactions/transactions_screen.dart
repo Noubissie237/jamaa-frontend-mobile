@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:jamaa_frontend_mobile/utils/utils.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -52,10 +53,6 @@ class _TransactionsScreenState extends State<TransactionsScreen>
           IconButton(
             onPressed: _showFilterOptions,
             icon: const Icon(Icons.filter_list),
-          ),
-          IconButton(
-            onPressed: _exportTransactions,
-            icon: const Icon(Icons.download),
           ),
         ],
         bottom: TabBar(
@@ -204,7 +201,7 @@ class _TransactionsScreenState extends State<TransactionsScreen>
                 ElevatedButton.icon(
                   onPressed: () {
                     // Navigation vers l'écran de création de transaction ou d'accueil
-                    context.go('/main/transfer');
+                    executeActionWithVerification(context, () => context.go('/main/transfer'));
                   },
                   icon: const Icon(Icons.add),
                   label: const Text('Commencer'),
@@ -418,14 +415,5 @@ class _TransactionsScreenState extends State<TransactionsScreen>
       case TransactionType.virement:
         return 'Virement';
     }
-  }
-
-  void _exportTransactions() {
-    // TODO: Implémenter l'export des transactions
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Export des transactions à venir'),
-      ),
-    );
   }
 }

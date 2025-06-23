@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jamaa_frontend_mobile/core/models/bank.dart';
+import 'package:jamaa_frontend_mobile/utils/utils.dart';
 
 class BankDetailsScreen extends StatelessWidget {
   final Bank bank;
@@ -346,10 +347,10 @@ class BankDetailsScreen extends StatelessWidget {
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: () {
-              context.go('/main/banks/add', extra: bank.name);
+              executeActionWithVerification(context, () => context.go('/main/banks/add', extra: bank.name));
             },
             icon: const Icon(Icons.link),
-            label: const Text('Souscrire à cette banque'),
+            label: const Text('Souscrire'),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
@@ -358,51 +359,10 @@ class BankDetailsScreen extends StatelessWidget {
             ),
           ),
         ),
-        // const SizedBox(height: 12),
-        // SizedBox(
-        //   width: double.infinity,
-        //   child: OutlinedButton.icon(
-        //     onPressed: () {
-        //       _showComparisonDialog(context, theme);
-        //     },
-        //     icon: const Icon(Icons.compare_arrows),
-        //     label: const Text('Comparer avec d\'autres banques'),
-        //     style: OutlinedButton.styleFrom(
-        //       padding: const EdgeInsets.symmetric(vertical: 16),
-        //       shape: RoundedRectangleBorder(
-        //         borderRadius: BorderRadius.circular(12),
-        //       ),
-        //     ),
-        //   ),
-        // ),
+
       ],
     );
   }
-
-  // void _showComparisonDialog(BuildContext context, ThemeData theme) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) => AlertDialog(
-  //       title: const Text('Comparaison'),
-  //       content: const Text(
-  //         'Cette fonctionnalité vous permettra de comparer les frais et services de différentes banques partenaires.',
-  //       ),
-  //       actions: [
-  //         TextButton(
-  //           onPressed: () => Navigator.of(context).pop(),
-  //           child: const Text('Fermer'),
-  //         ),
-  //         TextButton(
-  //           onPressed: () {
-  //             Navigator.of(context).pop();
-  //             context.go('/main/banks');
-  //           },
-  //           child: const Text('Voir toutes les banques'),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 
   String _formatDate(DateTime date) {
     final months = [

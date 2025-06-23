@@ -22,12 +22,6 @@ class TransactionDetailScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Détail de la transaction'),
         centerTitle: true,
-        actions: [
-          IconButton(
-            onPressed: () => _shareTransaction(context),
-            icon: const Icon(Icons.share),
-          ),
-        ],
       ),
       body: Consumer<TransactionProvider>(
         builder: (context, transactionProvider, child) {
@@ -393,18 +387,7 @@ Widget _buildStatusCard(Transaction transaction, ThemeData theme) {
   Widget _buildActionsSection(BuildContext context, Transaction transaction, ThemeData theme) {
     return Column(
       children: [
-        // Répéter la transaction
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: () => _repeatTransaction(context, transaction),
-            icon: const Icon(Icons.repeat),
-            label: const Text('Répéter cette transaction'),
-          ),
-        ),
-        
-        const SizedBox(height: 12),
-        
+       
         // Télécharger le reçu
         SizedBox(
           width: double.infinity,
@@ -415,22 +398,6 @@ Widget _buildStatusCard(Transaction transaction, ThemeData theme) {
           ),
         ),
         
-        const SizedBox(height: 12),
-        
-        // Signaler un problème
-        if (transaction.status == TransactionStatus.failed)
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () => _reportProblem(context, transaction),
-              icon: const Icon(Icons.report_problem),
-              label: const Text('Signaler un problème'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: theme.colorScheme.error,
-                side: BorderSide(color: theme.colorScheme.error),
-              ),
-            ),
-          ),
       ],
     )
         .animate()
@@ -506,24 +473,6 @@ Widget _buildStatusCard(Transaction transaction, ThemeData theme) {
     }
   }
 
-  void _shareTransaction(BuildContext context) {
-    // TODO: Implémenter le partage de transaction
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Partage de transaction à venir'),
-      ),
-    );
-  }
-
-  void _repeatTransaction(BuildContext context, Transaction transaction) {
-    // TODO: Implémenter la répétition de transaction
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Répétition de transaction à venir'),
-      ),
-    );
-  }
-
   void _downloadReceipt(BuildContext context, Transaction transaction) {
     // TODO: Implémenter le téléchargement de reçu
     ScaffoldMessenger.of(context).showSnackBar(
@@ -533,12 +482,4 @@ Widget _buildStatusCard(Transaction transaction, ThemeData theme) {
     );
   }
 
-  void _reportProblem(BuildContext context, Transaction transaction) {
-    // TODO: Implémenter le signalement de problème
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Signalement de problème à venir'),
-      ),
-    );
-  }
 }
