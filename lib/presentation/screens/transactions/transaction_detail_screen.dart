@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:jamaa_frontend_mobile/utils/receipt_generator.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
@@ -392,7 +393,7 @@ Widget _buildStatusCard(Transaction transaction, ThemeData theme) {
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
-            onPressed: () => _downloadReceipt(context, transaction),
+            onPressed: () => ReceiptGenerator.downloadReceipt(context, transaction),
             icon: const Icon(Icons.download),
             label: const Text('Télécharger le reçu'),
           ),
@@ -471,15 +472,6 @@ Widget _buildStatusCard(Transaction transaction, ThemeData theme) {
       case TransactionStatus.failed:
         return Colors.red;
     }
-  }
-
-  void _downloadReceipt(BuildContext context, Transaction transaction) {
-    // TODO: Implémenter le téléchargement de reçu
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Téléchargement du reçu à venir'),
-      ),
-    );
   }
 
 }
