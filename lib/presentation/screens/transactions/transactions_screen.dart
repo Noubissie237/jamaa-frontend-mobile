@@ -204,7 +204,7 @@ class _TransactionsScreenState extends State<TransactionsScreen>
                 ElevatedButton.icon(
                   onPressed: () {
                     // Navigation vers l'écran de création de transaction ou d'accueil
-                    context.go('/main/home');
+                    context.go('/main/transfer');
                   },
                   icon: const Icon(Icons.add),
                   label: const Text('Commencer'),

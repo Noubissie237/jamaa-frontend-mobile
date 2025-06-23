@@ -72,7 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ).animate().scale(
-                        duration: 600.ms,
+                        duration: 300.ms,
                         curve: Curves.elasticOut,
                       ),
 
@@ -85,7 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           )
                           .animate()
-                          .fadeIn(delay: 200.ms, duration: 600.ms)
+                          .fadeIn(delay: 100.ms, duration: 300.ms)
                           .slideY(begin: 0.3, end: 0),
 
                       const SizedBox(height: 8),
@@ -93,13 +93,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       Text(
                             'Connectez-vous à votre compte JAMAA',
                             style: theme.textTheme.bodyLarge?.copyWith(
-                              color: theme.colorScheme.onBackground.withValues(alpha: 
+                              color: theme.colorScheme.onSurface.withValues(alpha: 
                                 0.7,
                               ),
                             ),
                           )
                           .animate()
-                          .fadeIn(delay: 400.ms, duration: 600.ms)
+                          .fadeIn(delay: 150.ms, duration: 300.ms)
                           .slideY(begin: 0.3, end: 0),
                     ],
                   ),
@@ -124,7 +124,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     )
                     .animate()
-                    .fadeIn(delay: 600.ms, duration: 600.ms)
+                    .fadeIn(delay: 200.ms, duration: 250.ms)
                     .slideX(begin: -0.2, end: 0),
 
                 const SizedBox(height: 16),
@@ -157,7 +157,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     )
                     .animate()
-                    .fadeIn(delay: 700.ms, duration: 600.ms)
+                    .fadeIn(delay: 250.ms, duration: 250.ms)
                     .slideX(begin: -0.2, end: 0),
 
                 const SizedBox(height: 16),
@@ -180,7 +180,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-                ).animate().fadeIn(delay: 800.ms, duration: 600.ms),
+                ).animate().fadeIn(delay: 300.ms, duration: 250.ms),
 
                 const SizedBox(height: 32),
 
@@ -195,7 +195,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     )
                     .animate()
-                    .fadeIn(delay: 900.ms, duration: 600.ms)
+                    .fadeIn(delay: 350.ms, duration: 250.ms)
                     .slideY(begin: 0.3, end: 0),
 
                 const SizedBox(height: 24),
@@ -233,8 +233,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           )
                           .animate()
-                          .fadeIn(duration: 300.ms)
-                          .shake(duration: 500.ms);
+                          .fadeIn(duration: 200.ms)
+                          .shake(duration: 300.ms);
                     }
                     return const SizedBox.shrink();
                   },
@@ -259,34 +259,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const Expanded(child: Divider()),
                   ],
-                ).animate().fadeIn(delay: 1000.ms, duration: 600.ms),
+                ).animate().fadeIn(delay: 400.ms, duration: 250.ms),
 
                 const SizedBox(height: 24),
 
                 // Options de connexion alternatives
                 Column(
                   children: [
-                    // Authentification biométrique
-                    // OutlinedButton.icon(
-                    //       onPressed: () {
-                    //         // TODO: Implémenter l'authentification biométrique
-                    //         ScaffoldMessenger.of(context).showSnackBar(
-                    //           const SnackBar(
-                    //             content: Text(
-                    //               'Authentification biométrique à venir',
-                    //             ),
-                    //           ),
-                    //         );
-                    //       },
-                    //       icon: const Icon(Icons.fingerprint),
-                    //       label: const Text('Authentification biométrique'),
-                    //     )
-                    //     .animate()
-                    //     .fadeIn(delay: 1100.ms, duration: 600.ms)
-                    //     .slideY(begin: 0.3, end: 0),
-
-                    // const SizedBox(height: 16),
-
                     // Connexion via code PIN
                     OutlinedButton.icon(
                           onPressed: () => context.go('/pin-login'),
@@ -294,7 +273,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           label: const Text('Connexion via code PIN'),
                         )
                         .animate()
-                        .fadeIn(delay: 1200.ms, duration: 600.ms)
+                        .fadeIn(delay: 450.ms, duration: 250.ms)
                         .slideY(begin: 0.3, end: 0),
                   ],
                 ),
@@ -320,7 +299,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ],
-                ).animate().fadeIn(delay: 1300.ms, duration: 600.ms),
+                ).animate().fadeIn(delay: 500.ms, duration: 250.ms),
               ],
             ),
           ),

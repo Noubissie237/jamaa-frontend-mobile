@@ -71,7 +71,7 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen> {
                   textAlign: TextAlign.center,
                 )
                     .animate()
-                    .fadeIn(duration: 600.ms)
+                    .fadeIn(duration: 300.ms)
                     .slideY(begin: -0.3, end: 0),
 
                 const SizedBox(height: 8),
@@ -84,7 +84,7 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen> {
                   textAlign: TextAlign.center,
                 )
                     .animate()
-                    .fadeIn(delay: 200.ms, duration: 600.ms)
+                    .fadeIn(delay: 50.ms, duration: 300.ms)
                     .slideY(begin: -0.3, end: 0),
 
                 const SizedBox(height: 32),
@@ -114,7 +114,7 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen> {
                   ],
                 )
                     .animate()
-                    .fadeIn(delay: 300.ms, duration: 600.ms),
+                    .fadeIn(delay: 100.ms, duration: 300.ms),
 
                 const SizedBox(height: 32),
 
@@ -134,7 +134,7 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen> {
                   },
                 )
                     .animate()
-                    .fadeIn(delay: 400.ms, duration: 600.ms)
+                    .fadeIn(delay: 150.ms, duration: 250.ms)
                     .slideX(begin: -0.2, end: 0),
 
                 const SizedBox(height: 24),
@@ -148,7 +148,7 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen> {
                   delay: 500,
                 )
                     .animate()
-                    .fadeIn(delay: 500.ms, duration: 600.ms)
+                    .fadeIn(delay: 200.ms, duration: 250.ms)
                     .slideX(begin: 0.2, end: 0),
 
                 const SizedBox(height: 16),
@@ -162,7 +162,7 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen> {
                   delay: 600,
                 )
                     .animate()
-                    .fadeIn(delay: 600.ms, duration: 600.ms)
+                    .fadeIn(delay: 250.ms, duration: 250.ms)
                     .slideX(begin: -0.2, end: 0),
 
                 const SizedBox(height: 24),
@@ -207,7 +207,7 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen> {
                   ],
                 )
                     .animate()
-                    .fadeIn(delay: 700.ms, duration: 600.ms),
+                    .fadeIn(delay: 300.ms, duration: 250.ms),
 
                 const SizedBox(height: 32),
 
@@ -222,7 +222,7 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen> {
                   },
                 )
                     .animate()
-                    .fadeIn(delay: 800.ms, duration: 600.ms)
+                    .fadeIn(delay: 350.ms, duration: 250.ms)
                     .slideY(begin: 0.3, end: 0),
 
                 const SizedBox(height: 24),
@@ -260,8 +260,8 @@ class _RegisterStep2ScreenState extends State<RegisterStep2Screen> {
                         ),
                       )
                           .animate()
-                          .fadeIn(duration: 300.ms)
-                          .shake(duration: 500.ms);
+                          .fadeIn(duration: 200.ms)
+                          .shake(duration: 300.ms);
                     }
                     return const SizedBox.shrink();
                   },

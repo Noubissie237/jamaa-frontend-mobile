@@ -336,6 +336,9 @@ Future<void> register({
           email
           phone
           isVerified
+          cniNumber
+          cniRecto
+          cniVerso
         }
       }
     ''';
@@ -369,26 +372,31 @@ Future<void> register({
         debugPrint('   🔍 Structure: ${data.keys.toList()}');
         
         final user = data['data']?['createCustomer'];
-        
+        debugPrint("données récupérés : $user");
         if (user != null) {
           debugPrint('👤 [USER] Utilisateur créé avec succès!');
           debugPrint('   🆔 ID: ${user['id']}');
           debugPrint('   👤 Nom: ${user['firstName']} ${user['lastName']}');
           debugPrint('   📧 Email: ${user['email']}');
           debugPrint('   📱 Téléphone: ${user['phone']}');
+          debugPrint('   🆔 CNI: ${user['cniNumber']}');
+          debugPrint('   📄 Recto: ${user['cniRecto']}');
+          debugPrint('   📄 Verso: ${user['cniVerso']}');
 
+          debugPrint(' Debut création du current user');
           _currentUser = User(
-            id: user['id'] ?? '',
+            id: int.parse(user['id']),
             firstName: user['firstName'] ?? '',
             lastName: user['lastName'] ?? '',
             email: user['email'] ?? '',
             phone: user['phone'] ?? '',
-            cniNumber: cniNumber ?? '',
-            cniRectoImage: cniRectoPath,
-            cniVersoImage: cniVersoPath,
+            cniNumber: user['cniNumber'] ?? '',
+            cniRectoImage: user['cniRecto'] ?? '',
+            cniVersoImage: user['cniVerso'] ?? '',
             createdAt: DateTime.now(),
             isVerified: user['isVerified'] ?? false,
           );
+          debugPrint('Fin création du current user');
 
           _isAuthenticated = true;
           debugPrint('✅ [AUTH] Utilisateur authentifié localement');

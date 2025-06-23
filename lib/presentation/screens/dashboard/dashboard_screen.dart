@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:jamaa_frontend_mobile/core/providers/bank_provider.dart';
 import 'package:jamaa_frontend_mobile/presentation/widgets/bank_card.dart';
 import 'package:jamaa_frontend_mobile/presentation/widgets/build_available_banks_section.dart';
 import 'package:jamaa_frontend_mobile/presentation/widgets/build_header.dart';
@@ -29,27 +30,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
   late TutorialCoachMark tutorialCoachMark;
   List<TargetFocus> targets = [];
   bool _showingTutorial = false;
+  bool _hasCheckedTutorial = false; // Flag pour éviter les vérifications multiples
 
   Future<void> _checkFirstSeen() async {
-    if (_showingTutorial) return;
+    if (_showingTutorial || _hasCheckedTutorial) return;
 
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool _seen = (prefs.getBool('card_scroll_tutorial_seen') ?? false);
+    final dashboardProvider = context.read<DashboardProvider>();
+    
+    // Ne vérifier que si les données sont chargées ET qu'il y a des comptes bancaires
+    if (!dashboardProvider.isLoading && dashboardProvider.bankAccounts.isNotEmpty) {
+      _hasCheckedTutorial = true; // Marquer comme vérifié
+      
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      bool _seen = (prefs.getBool('card_scroll_tutorial_seen') ?? false);
 
-    if (!_seen) {
-      // Attendre que les cartes soient chargées
-      await Future.delayed(const Duration(milliseconds: 1000));
-      if (mounted) {
-        final dashboardProvider = context.read<DashboardProvider>();
-        // Afficher le tutoriel seulement s'il y a plusieurs cartes
-        if (dashboardProvider.bankAccounts.isNotEmpty) {
-          _showingTutorial = true;
-          _initTargets();
-          showTutorial();
-          await prefs.setBool('card_scroll_tutorial_seen', true);
-        }
+      if (!_seen && mounted) {
+        _showingTutorial = true;
+        _initTargets();
+        showTutorial();
+        await prefs.setBool('card_scroll_tutorial_seen', true);
       }
     }
+  }
+
+  void _onDashboardDataLoaded() {
+    // Vérifier le tutoriel chaque fois que les données changent
+    _checkFirstSeen();
   }
 
   void showTutorial() {
@@ -164,19 +170,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ];
   }
 
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DashboardProvider>().loadDashboardData(userId: context.read<AuthProvider>().currentUser!.id.toString());
-      context.read<TransactionProvider>().loadTransactions(context.read<AuthProvider>().currentUser!.id);
+      final dashboardProvider = context.read<DashboardProvider>();
+      final authProvider = context.read<AuthProvider>();
       
-      // Vérifier le tutoriel après le chargement des données
-      Future.delayed(const Duration(milliseconds: 500), () {
-        _checkFirstSeen();
-      });
+      // Charger les données
+      dashboardProvider.loadDashboardData(userId: authProvider.currentUser!.id.toString());
+      context.read<TransactionProvider>().loadTransactions(authProvider.currentUser!.id);
+      
+      // Ajouter un listener pour détecter quand les données sont chargées
+      dashboardProvider.addListener(_onDashboardDataLoaded);
     });
+  }
+
+  @override
+  void dispose() {
+    // Nettoyer le listener
+    try {
+      context.read<DashboardProvider>().removeListener(_onDashboardDataLoaded);
+    } catch (e) {
+      // Ignorer si le provider n'existe plus
+    }
+    super.dispose();
   }
 
   @override
@@ -294,7 +312,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     await Future.wait([
       context.read<DashboardProvider>().refreshBalance(userId: context.read<AuthProvider>().currentUser!.id.toString()),
       context.read<TransactionProvider>().loadTransactions(context.read<AuthProvider>().currentUser!.id),
+      context.read<BankProvider>().fetchBanks(),
     ]);
   }
-
 }
