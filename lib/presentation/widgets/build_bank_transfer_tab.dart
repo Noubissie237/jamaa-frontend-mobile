@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:jamaa_frontend_mobile/presentation/widgets/build_quick_amount.dart';
 import 'package:jamaa_frontend_mobile/presentation/widgets/card_number_input_formatter.dart';
 import 'package:jamaa_frontend_mobile/presentation/widgets/custom_text_field.dart';
 import 'package:jamaa_frontend_mobile/presentation/widgets/proceed_to_confirmation.dart';
 import 'package:jamaa_frontend_mobile/core/models/bank_account.dart';
 import 'package:jamaa_frontend_mobile/presentation/widgets/qr_scanner_screen.dart';
+import 'package:jamaa_frontend_mobile/utils/utils.dart';
 
 Widget buildBankTransferTab(
   BuildContext context, 
@@ -453,8 +455,7 @@ class _BankTransferContentState extends State<_BankTransferContent> {
                       const SizedBox(height: 12),
                       ElevatedButton.icon(
                         onPressed: () {
-                          // TODO: Navigation vers la page d'ajout de compte bancaire
-                          // Navigator.pushNamed(context, '/add-bank-account');
+                         executeActionWithVerification(context, () => context.go('/main/banks/add'));
                         },
                         icon: const Icon(Icons.add),
                         label: const Text('Ajouter un compte'),

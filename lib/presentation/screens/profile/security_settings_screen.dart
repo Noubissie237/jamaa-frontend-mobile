@@ -510,7 +510,7 @@ Future<void> _changePassword() async {
       });
 
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      await authProvider.updatePassword(_confirmPasswordController.text.trim());
+      await authProvider.updatePassword(authProvider.currentUser!.id ,_confirmPasswordController.text.trim());
 
       if (mounted) {
         // Message de succès

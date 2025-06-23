@@ -58,6 +58,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _checkFirstSeen();
   }
 
+  void _checkUserVerificationStatus() {
+    final authProvider = context.read<AuthProvider>();
+    final user = authProvider.currentUser;
+    
+    // Si l'utilisateur existe et n'est pas vérifié, rafraîchir les données
+    if (user != null && !user.isVerified) {
+      debugPrint('👤 [DASHBOARD] Utilisateur non vérifié détecté, rafraîchissement des données...');
+      authProvider.refreshUserData();
+    }
+  }
+
   void showTutorial() {
     tutorialCoachMark = TutorialCoachMark(
       targets: targets,
@@ -176,6 +187,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final dashboardProvider = context.read<DashboardProvider>();
       final authProvider = context.read<AuthProvider>();
+      
+      // Vérifier le statut de vérification utilisateur
+      _checkUserVerificationStatus();
       
       // Charger les données
       dashboardProvider.loadDashboardData(userId: authProvider.currentUser!.id.toString());
@@ -309,6 +323,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _refreshData() async {
+    // Vérifier le statut de vérification utilisateur lors du refresh
+    _checkUserVerificationStatus();
+    
     await Future.wait([
       context.read<DashboardProvider>().refreshBalance(userId: context.read<AuthProvider>().currentUser!.id.toString()),
       context.read<TransactionProvider>().loadTransactions(context.read<AuthProvider>().currentUser!.id),

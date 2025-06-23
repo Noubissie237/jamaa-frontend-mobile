@@ -648,14 +648,7 @@ Future<void> _makeRecharge() async {
     
     // Vérifier que l'utilisateur est connecté
     if (authProvider.currentUser == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Vous devez être connecté pour voir vos comptes bancaires'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+
       return;
     }
     

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:jamaa_frontend_mobile/utils/account_service.dart';
+import 'package:jamaa_frontend_mobile/utils/utils.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -729,17 +730,18 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
     // Récupérer les informations du transfert bancaire
     final senderBankId = widget.transferData['senderBankId'] as String;
     final receiverAccountNumber = widget.transferData['receiverAccountNumber'] as String;
+    final receiverAccountNumberUnformatted = unformatAccountNumber(receiverAccountNumber);
     final amount = widget.transferData['amount'] as double;
 
     debugPrint('[BANK_TRANSFER] Début du transfert bancaire');
     debugPrint('[BANK_TRANSFER] Banque expéditrice ID: $senderBankId');
-    debugPrint('[BANK_TRANSFER] Compte destinataire: $receiverAccountNumber');
+    debugPrint('[BANK_TRANSFER] Compte destinataire: $receiverAccountNumberUnformatted');
     debugPrint('[BANK_TRANSFER] Montant: $amount XAF');
 
     try {
       // Étape 1: Récupérer les informations de la carte destinataire
       debugPrint('[BANK_TRANSFER] Récupération des informations de la carte destinataire...');
-      final cardInfo = await cardProvider.getCardBasicInfo(receiverAccountNumber);
+      final cardInfo = await cardProvider.getCardBasicInfo(receiverAccountNumberUnformatted);
       
       if (cardInfo == null) {
         _showErrorDialog('Carte destinataire introuvable. Vérifiez le numéro de compte.');
@@ -751,7 +753,7 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
       // Étape 2: Récupérer l'ID de la banque destinataire
       // On utilise fetchBankAccountsByCardNumber pour obtenir plus d'informations
 
-      await cardProvider.fetchBankAccountsByCardNumber(receiverAccountNumber);
+      await cardProvider.fetchBankAccountsByCardNumber(receiverAccountNumberUnformatted);
       
       if (cardProvider.userBankAccounts.isEmpty) {
         _showErrorDialog('Impossible de récupérer les informations de la banque destinataire.');

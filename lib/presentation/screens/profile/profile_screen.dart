@@ -6,8 +6,33 @@ import 'package:go_router/go_router.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/settings_provider.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Vérifier le statut de vérification après le build initial
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkUserVerificationStatus();
+    });
+  }
+
+  void _checkUserVerificationStatus() {
+    final authProvider = context.read<AuthProvider>();
+    final user = authProvider.currentUser;
+    
+    // Si l'utilisateur existe et n'est pas vérifié, rafraîchir les données
+    if (user != null && !user.isVerified) {
+      debugPrint('👤 [PROFILE] Utilisateur non vérifié détecté, rafraîchissement des données...');
+      authProvider.refreshUserData();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -133,10 +133,12 @@ class AuthProvider extends ChangeNotifier {
 
 
   User? _currentUser;
+  int? _tmpUserId;
   bool _isAuthenticated = false;
   bool _isLoading = false;
   String? _error;
 
+  int? get tmpUserId => _tmpUserId;
   User? get currentUser => _currentUser;
   bool get isAuthenticated => _isAuthenticated;
   bool get isLoading => _isLoading;
@@ -198,7 +200,7 @@ class AuthProvider extends ChangeNotifier {
         notifyListeners();
 
       } else {
-        String errorMessage = 'Identifiants invalides';
+        String errorMessage = 'Email ou mot de passe incorrect';
         try {
           final Map<String, dynamic> errorData = jsonDecode(response.body);
           if (errorData.containsKey('message')) {
@@ -456,11 +458,77 @@ Future<void> register({
   }
 }
 
-Future<void> updatePassword(String password) async {
+Future<bool> emailExist(String email) async {
+  _setLoading(true);
+  final mutation = '''
+    query {
+      getCustomerByEmail(email: "$email") {
+        id
+        email
+      }
+    }
+  ''';
+
+  final response = await http.post(
+    Uri.parse(ApiConstants.register),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({'query': mutation}),
+  );
+
+  final data = jsonDecode(response.body);
+
+  if (data['errors'] != null) {
+    throw Exception(data['errors'][0]['message']);
+  }
+
+  if (response.statusCode == 200) {
+    _setLoading(false);
+    if(data['data']['getCustomerByEmail'] != null) {
+      return true;
+    }
+    return false;
+  }
+
+  _setLoading(false);
+  return false;
+}
+
+Future<void> getUserByEmail(String email) async {
+  _setLoading(true);
+  final mutation = '''
+    query {
+      getCustomerByEmail(email: "$email") {
+        id
+      }
+    }
+  ''';
+
+  final response = await http.post(
+    Uri.parse(ApiConstants.register),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({'query': mutation}),
+  );
+
+  final data = jsonDecode(response.body);
+
+  if (data['errors'] != null) {
+    throw Exception(data['errors'][0]['message']);
+  }
+
+  if (response.statusCode == 200) {
+    _setLoading(false);
+    if(data['data']['getCustomerByEmail'] != null) {
+      _tmpUserId = int.parse(data['data']['getCustomerByEmail']['id']);
+    }
+  }
+  _setLoading(false);
+}
+
+Future<void> updatePassword(int id, String password) async {
   _setLoading(true);
   final mutation = '''
     mutation {
-      updateCustomerPassword(id: "${_currentUser?.id}", password: "$password") {
+      updateCustomerPassword(id: "$id", password: "$password") {
         id
         password
       }

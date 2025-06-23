@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/providers/auth_provider.dart';
 import '../../widgets/custom_text_field.dart';
@@ -15,6 +16,12 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _obscurePassword = true;
+  bool _canUsePinLogin = false; // Flag pour savoir si le login PIN est disponible
+
   @override
   void initState() {
     super.initState();
@@ -22,12 +29,48 @@ class _LoginScreenState extends State<LoginScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       authProvider.clearError();
+      
+      // Vérifier si les credentials sont disponibles pour le login PIN
+      _checkPinLoginAvailability();
     });
   }
-  final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  bool _obscurePassword = true;
+
+  /// Vérifie si les credentials sont stockés dans SharedPreferences
+  /// pour déterminer si le login via PIN est disponible
+  Future<void> _checkPinLoginAvailability() async {
+    try {
+      // Petit délai pour s'assurer que les opérations de SharedPreferences sont terminées
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      final prefs = await SharedPreferences.getInstance();
+      final userEmail = prefs.getString('user_email');
+      final userPassword = prefs.getString('user_password');
+      
+      debugPrint('🔍 [PIN_CHECK] Vérification des credentials stockés...');
+      debugPrint('   📧 Email: ${userEmail != null ? 'Présent' : 'Absent'}');
+      debugPrint('   🔒 Password: ${userPassword != null ? 'Présent' : 'Absent'}');
+      
+      final canUsePin = userEmail != null && 
+                      userPassword != null && 
+                      userEmail.isNotEmpty && 
+                      userPassword.isNotEmpty;
+      
+      debugPrint('   ✅ Login PIN disponible: $canUsePin');
+      
+      if (mounted) {
+        setState(() {
+          _canUsePinLogin = canUsePin;
+        });
+      }
+    } catch (e) {
+      debugPrint('❌ [PIN_CHECK] Erreur lors de la vérification: $e');
+      if (mounted) {
+        setState(() {
+          _canUsePinLogin = false;
+        });
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -166,12 +209,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () {
-                      // TODO: Implémenter la récupération de mot de passe
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Fonctionnalité à venir')),
-                      );
-                    },
+                    onPressed: () => context.go('/main/forgot-password'),
                     child: Text(
                       'Mot de passe oublié ?',
                       style: theme.textTheme.bodyMedium?.copyWith(
@@ -240,43 +278,46 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                 ),
 
-                const SizedBox(height: 32),
+                // Divider et options de connexion alternatives (seulement si PIN disponible)
+                if (_canUsePinLogin) ...[
+                  const SizedBox(height: 32),
 
-                // Divider
-                Row(
-                  children: [
-                    const Expanded(child: Divider()),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        'ou',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurface.withValues(
-                            alpha: 0.6,
+                  // Divider
+                  Row(
+                    children: [
+                      const Expanded(child: Divider()),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          'ou',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.6,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    const Expanded(child: Divider()),
-                  ],
-                ).animate().fadeIn(delay: 400.ms, duration: 250.ms),
+                      const Expanded(child: Divider()),
+                    ],
+                  ).animate().fadeIn(delay: 400.ms, duration: 250.ms),
 
-                const SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
-                // Options de connexion alternatives
-                Column(
-                  children: [
-                    // Connexion via code PIN
-                    OutlinedButton.icon(
-                          onPressed: () => context.go('/pin-login'),
-                          icon: const Icon(Icons.pin_outlined),
-                          label: const Text('Connexion via code PIN'),
-                        )
-                        .animate()
-                        .fadeIn(delay: 450.ms, duration: 250.ms)
-                        .slideY(begin: 0.3, end: 0),
-                  ],
-                ),
+                  // Options de connexion alternatives
+                  Column(
+                    children: [
+                      // Connexion via code PIN
+                      OutlinedButton.icon(
+                            onPressed: () => context.go('/pin-login'),
+                            icon: const Icon(Icons.pin_outlined),
+                            label: const Text('Connexion via code PIN'),
+                          )
+                          .animate()
+                          .fadeIn(delay: 450.ms, duration: 250.ms)
+                          .slideY(begin: 0.3, end: 0),
+                    ],
+                  ),
+                ],
 
                 const SizedBox(height: 32),
 

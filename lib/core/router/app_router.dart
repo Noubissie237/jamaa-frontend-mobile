@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:jamaa_frontend_mobile/core/models/bank.dart';
+import 'package:jamaa_frontend_mobile/presentation/screens/auth/forgot_password.dart';
 import 'package:jamaa_frontend_mobile/presentation/screens/auth/pin_login_screen.dart';
 import 'package:jamaa_frontend_mobile/presentation/screens/auth/register_step1_screen.dart';
 import 'package:jamaa_frontend_mobile/presentation/screens/auth/register_step2_screen.dart';
@@ -187,6 +188,12 @@ class AppRouter {
                 builder: (context, state) => const SecuritySettingsScreen(),
               ),
             ],
+          ),
+
+          GoRoute(
+            path: 'forgot-password',
+            name: 'forgot-password',
+            builder: (context, state) => const ForgotPasswordScreen(),
           ),
 
           // Notifications
