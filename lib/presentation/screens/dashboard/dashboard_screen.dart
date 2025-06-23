@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:jamaa_frontend_mobile/core/providers/bank_provider.dart';
+import 'package:jamaa_frontend_mobile/core/service/tutoriel_manager.dart';
 import 'package:jamaa_frontend_mobile/presentation/widgets/bank_card.dart';
 import 'package:jamaa_frontend_mobile/presentation/widgets/build_available_banks_section.dart';
 import 'package:jamaa_frontend_mobile/presentation/widgets/build_header.dart';
@@ -30,7 +31,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   late TutorialCoachMark tutorialCoachMark;
   List<TargetFocus> targets = [];
   bool _showingTutorial = false;
-  bool _hasCheckedTutorial = false; // Flag pour éviter les vérifications multiples
+  bool _hasCheckedTutorial = false;
+  final LinkedTutorialManager _linkedTutorialManager = LinkedTutorialManager.instance;
 
   Future<void> _checkFirstSeen() async {
     if (_showingTutorial || _hasCheckedTutorial) return;
@@ -39,7 +41,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     
     // Ne vérifier que si les données sont chargées ET qu'il y a des comptes bancaires
     if (!dashboardProvider.isLoading && dashboardProvider.bankAccounts.isNotEmpty) {
-      _hasCheckedTutorial = true; // Marquer comme vérifié
+      _hasCheckedTutorial = true;
       
       SharedPreferences prefs = await SharedPreferences.getInstance();
       bool _seen = (prefs.getBool('card_scroll_tutorial_seen') ?? false);
@@ -53,9 +55,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  // Nouvelle méthode pour déclencher les tutoriels liés
+  Future<void> _triggerLinkedTutorials() async {
+    if (!mounted) return;
+
+    // Vérifier si tous les tutoriels liés sont déjà terminés
+    if (await _linkedTutorialManager.areLinkedTutorialsCompleted()) {
+      return;
+    }
+
+    // 1. Tutoriel du bouton partager
+    if (await _linkedTutorialManager.shouldShowShareButtonTutorial()) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (mounted) {
+        // Déclencher le tutoriel du bouton partager
+        setState(() {
+          // Trigger rebuild pour que BalanceCard vérifie s'il doit montrer son tutoriel
+        });
+      }
+      return;
+    }
+
+    // 2. Tutoriel des actions rapides
+    if (await _linkedTutorialManager.shouldShowQuickActionsTutorial()) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (mounted) {
+        // Déclencher le tutoriel des actions rapides
+        setState(() {
+          // Trigger rebuild pour que QuickActions vérifie s'il doit montrer son tutoriel
+        });
+      }
+    }
+  }
+
   void _onDashboardDataLoaded() {
     // Vérifier le tutoriel chaque fois que les données changent
     _checkFirstSeen();
+    // Déclencher les tutoriels liés (Share Button → Quick Actions)
+    _triggerLinkedTutorials();
   }
 
   void _checkUserVerificationStatus() {
@@ -67,6 +104,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
       debugPrint('👤 [DASHBOARD] Utilisateur non vérifié détecté, rafraîchissement des données...');
       authProvider.refreshUserData();
     }
+  }
+
+  // Callback pour quand le tutoriel Share Button est terminé
+  void _onShareButtonTutorialFinished() async {
+    await _linkedTutorialManager.markShareButtonTutorialAsSeen();
+    
+    // Continuer avec le tutoriel suivant après un délai
+    await Future.delayed(const Duration(milliseconds: 1000));
+    if (mounted) {
+      await _triggerLinkedTutorials();
+    }
+  }
+
+  // Callback pour quand le tutoriel Quick Actions est terminé
+  void _onQuickActionsTutorialFinished() async {
+    await _linkedTutorialManager.markQuickActionsTutorialAsSeen();
+    print("Tous les tutoriels liés sont terminés !");
+  }
+
+  // Callback pour quand l'utilisateur ignore un tutoriel lié
+  void _onLinkedTutorialSkipped() async {
+    await _linkedTutorialManager.markAllLinkedTutorialsAsSkipped();
+    print("Tutoriels liés ignorés par l'utilisateur");
   }
 
   void showTutorial() {
@@ -239,8 +299,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                 const SizedBox(height: 24),
 
-                // Actions rapides
-                buildQuickActions(context),
+                // CORRECTION 3: Actions rapides avec tutoriels
+                _buildQuickActionsWithTutorials(),
 
                 const SizedBox(height: 24),
 
@@ -277,7 +337,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         // Créer la liste des cartes
         List<Widget> cards = [];
         
-        // Ajouter la carte principale
+        // CORRECTION 4: Ajouter la carte principale avec les bons paramètres
         cards.add(
           BalanceCard(
             balance: dashboardProvider.formattedTotalBalance,
@@ -287,7 +347,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               setState(() {
                 _balanceVisible = !_balanceVisible;
               });
-            }
+            },
+            // Passer les callbacks pour contrôler le tutoriel
+            shouldShowTutorial: () async => await _linkedTutorialManager.shouldShowShareButtonTutorial(),
+            onTutorialFinished: _onShareButtonTutorialFinished,
+            onTutorialSkipped: _onLinkedTutorialSkipped,
           ),
         );
         
@@ -319,6 +383,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
         .fadeIn(delay: 200.ms, duration: 600.ms)
         .slideY(begin: 0.3, end: 0);
       },
+    );
+  }
+
+  // CORRECTION 5: Nouvelle méthode pour les actions rapides avec tutoriels
+  Widget _buildQuickActionsWithTutorials() {
+    return QuickActionsWithTutorials(
+      shouldShowTutorial: () async => await _linkedTutorialManager.shouldShowQuickActionsTutorial(),
+      onTutorialFinished: _onQuickActionsTutorialFinished,
+      onTutorialSkipped: _onLinkedTutorialSkipped,
     );
   }
 

@@ -6,7 +6,9 @@ import 'package:jamaa_frontend_mobile/utils/utils.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jamaa_frontend_mobile/core/providers/bank_provider.dart';
-import 'package:jamaa_frontend_mobile/core/providers/card_provider.dart'; // Nouveau import
+import 'package:jamaa_frontend_mobile/core/providers/card_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import '../../../core/providers/dashboard_provider.dart';
 
 class BanksScreen extends StatefulWidget {
@@ -17,6 +19,11 @@ class BanksScreen extends StatefulWidget {
 }
 
 class _BanksScreenState extends State<BanksScreen> {
+  final GlobalKey addButtonKey = GlobalKey();
+  late TutorialCoachMark tutorialCoachMark;
+  bool _showingTutorial = false;
+  bool _hasCheckedTutorial = false;
+
   @override
   void initState() {
     super.initState();
@@ -30,7 +37,228 @@ class _BanksScreenState extends State<BanksScreen> {
       // Charger les banques et les comptes utilisateur en parallèle
       context.read<BankProvider>().fetchBanks();
       context.read<CardProvider>().fetchUserBankAccounts(userIdString);
+      
+      // Vérifier et montrer le tutoriel après un délai
+      Future.delayed(const Duration(milliseconds: 1000), () {
+        _checkAndShowAddBankTutorial();
+      });
     });
+  }
+
+  Future<void> _checkAndShowAddBankTutorial() async {
+    if (_showingTutorial || _hasCheckedTutorial) return;
+    
+    _hasCheckedTutorial = true;
+    
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool tutorialSeen = (prefs.getBool('add_bank_tutorial_seen') ?? false);
+
+    if (!tutorialSeen && mounted) {
+      _showingTutorial = true;
+      _showAddBankTutorial();
+      await prefs.setBool('add_bank_tutorial_seen', true);
+    }
+  }
+
+  void _showAddBankTutorial() {
+    List<TargetFocus> targets = [
+      TargetFocus(
+        identify: "addBankButton",
+        keyTarget: addButtonKey,
+        alignSkip: Alignment.bottomLeft,
+        shape: ShapeLightFocus.Circle,
+        radius: 25,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (context, controller) {
+              return Container(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.account_balance,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        const Text(
+                          "Ajouter une banque",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      "Connectez vos comptes bancaires pour commencer vos transactions",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          width: 1,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildBenefitItem(
+                            Icons.swap_horiz,
+                            "Transactions faciles",
+                            "Transférez entre vos comptes bancaires et JAMAA Money",
+                          ),
+                          const SizedBox(height: 12),
+                          _buildBenefitItem(
+                            Icons.security,
+                            "Connexion sécurisée",
+                            "Vos données bancaires sont protégées et chiffrées",
+                          ),
+                          const SizedBox(height: 12),
+                          _buildBenefitItem(
+                            Icons.flash_on,
+                            "Instantané",
+                            "Rechargez et retirez de l'argent en temps réel",
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            controller.skip();
+                          },
+                          child: const Text(
+                            "Plus tard",
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            controller.next();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: Colors.green,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          child: const Text(
+                            "Compris !",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    ];
+
+    tutorialCoachMark = TutorialCoachMark(
+      targets: targets,
+      colorShadow: Colors.black,
+      paddingFocus: 10,
+      opacityShadow: 0.8,
+      onFinish: () {
+        print("Tutoriel d'ajout de banque terminé");
+        _showingTutorial = false;
+      },
+      onClickTarget: (target) {
+        print('Bouton ${target.identify} cliqué dans le tutoriel');
+      },
+      onSkip: () {
+        print("Tutoriel d'ajout de banque ignoré");
+        _showingTutorial = false;
+        return true;
+      },
+    );
+
+    if (mounted) {
+      tutorialCoachMark.show(context: context);
+    }
+  }
+
+  Widget _buildBenefitItem(IconData icon, String title, String description) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Icon(
+            icon,
+            color: Colors.white,
+            size: 16,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                description,
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 12,
+                  height: 1.3,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -43,8 +271,10 @@ class _BanksScreenState extends State<BanksScreen> {
         centerTitle: true,
         actions: [
           IconButton(
+            key: addButtonKey, // GlobalKey pour le tutoriel
             onPressed: () => executeActionWithVerification(context, () => context.go('/main/banks/add')),
             icon: const Icon(Icons.add),
+            tooltip: 'Ajouter une banque',
           ),
         ],
       ),
