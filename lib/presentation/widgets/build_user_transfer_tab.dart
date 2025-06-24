@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:jamaa_frontend_mobile/core/providers/dashboard_provider.dart';
 import 'package:jamaa_frontend_mobile/presentation/widgets/beneficiary_type_selector.dart';
 import 'package:jamaa_frontend_mobile/presentation/widgets/build_balance_card.dart';
 import 'package:jamaa_frontend_mobile/presentation/widgets/build_quick_amount.dart';
 import 'package:jamaa_frontend_mobile/presentation/widgets/custom_text_field.dart';
 import 'package:jamaa_frontend_mobile/presentation/widgets/proceed_to_confirmation.dart';
 import 'package:jamaa_frontend_mobile/presentation/widgets/qr_scanner_screen.dart';
+import 'package:provider/provider.dart';
 
 // Enum pour les types de bénéficiaire
 enum BeneficiaryType {
@@ -161,6 +163,7 @@ class _UserTransferContentState extends State<_UserTransferContent> {
 
   @override
   Widget build(BuildContext context) {
+    final dashboardProvider = Provider.of<DashboardProvider>(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -301,6 +304,9 @@ class _UserTransferContentState extends State<_UserTransferContent> {
               }
               if (amount < 100) {
                 return 'Montant minimum : 100 XAF';
+              }
+              if (amount > dashboardProvider.totalBalance) {
+                return 'Solde insuffisant, vous avez ${dashboardProvider.totalBalance} XAF';
               }
               return null;
             },

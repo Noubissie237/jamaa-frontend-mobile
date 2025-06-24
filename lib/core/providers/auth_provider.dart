@@ -133,6 +133,7 @@ class AuthProvider extends ChangeNotifier {
 
 
   User? _currentUser;
+  User? _tmpUser;
   int? _tmpUserId;
   bool _isAuthenticated = false;
   bool _isLoading = false;
@@ -140,6 +141,7 @@ class AuthProvider extends ChangeNotifier {
 
   int? get tmpUserId => _tmpUserId;
   User? get currentUser => _currentUser;
+  User? get tmpUser => _tmpUser;
   bool get isAuthenticated => _isAuthenticated;
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -491,6 +493,61 @@ Future<bool> emailExist(String email) async {
 
   _setLoading(false);
   return false;
+}
+
+Future<User?> getUserById(String id) async {
+  _setLoading(true);
+  
+  try {
+    final query = '''
+      query {
+        getCustomerById(id: "$id") {
+          id
+          firstName
+          lastName
+          email
+          phone
+          cniNumber
+          isVerified
+        }
+      }
+    ''';
+
+    final response = await http.post(
+      Uri.parse(ApiConstants.register),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'query': query}),
+    );
+
+    final data = jsonDecode(response.body);
+
+    if (data['errors'] != null) {
+      throw Exception(data['errors'][0]['message']);
+    }
+
+    if (response.statusCode == 200) {
+      if(data['data']['getCustomerById'] != null) {
+        _tmpUser = User(
+          id: int.parse(data['data']['getCustomerById']['id']),
+          firstName: data['data']['getCustomerById']['firstName'],
+          lastName: data['data']['getCustomerById']['lastName'],
+          email: data['data']['getCustomerById']['email'],
+          phone: data['data']['getCustomerById']['phone'],
+          cniNumber: data['data']['getCustomerById']['cniNumber'],
+          createdAt: DateTime.now(),
+          isVerified: data['data']['getCustomerById']['isVerified'],
+        );
+        notifyListeners(); // Notifier les changements
+        return _tmpUser;
+      }
+    }
+    return null;
+  } catch (e) {
+    debugPrint('Erreur getUserById: $e');
+    return null;
+  } finally {
+    _setLoading(false);
+  }
 }
 
 Future<void> getUserByEmail(String email) async {

@@ -59,7 +59,6 @@ void proceedToConfirmation(
       );
       return;
   }
-
   // Navigation vers la page de confirmation
   executeActionWithVerification(context, () => context.go('/main/transfer/confirmation', extra: transferData));
 }

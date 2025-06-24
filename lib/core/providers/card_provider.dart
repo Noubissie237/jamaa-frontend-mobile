@@ -59,6 +59,9 @@ class CardProvider extends ChangeNotifier {
           '''
         }),
       );
+      debugPrint("DEBUT");
+      debugPrint(_cardBasicInfo?.bankName);
+      debugPrint(_cardBasicInfo?.bankName);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -71,7 +74,7 @@ class CardProvider extends ChangeNotifier {
           final cardData = data['data']['cardByNumber'];
           if (cardData != null) {
             _cardBasicInfo = CardBasicInfo.fromJson(cardData);
-            print('Informations de carte récupérées: ${_cardBasicInfo?.holderName} - ${_cardBasicInfo?.bankName}');
+            print('APRÈS ${_cardBasicInfo?.holderName} - ${_cardBasicInfo?.bankName}');
             return _cardBasicInfo;
           } else {
             _error = 'Aucune carte trouvée avec ce numéro';
@@ -165,7 +168,8 @@ class CardProvider extends ChangeNotifier {
     _isLoading = true;
     _error = null;
     notifyListeners();
-
+    debugPrint("============================");
+    debugPrint(cardNumber);
     try {
       final url = Uri.parse(ApiConstants.cardServiceUrl);
       final response = await http.post(
@@ -225,6 +229,11 @@ class CardProvider extends ChangeNotifier {
     }
     
     _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> refreshCardBasicInfo(String cardNumber) async {
+    await getCardBasicInfo(cardNumber);
     notifyListeners();
   }
 

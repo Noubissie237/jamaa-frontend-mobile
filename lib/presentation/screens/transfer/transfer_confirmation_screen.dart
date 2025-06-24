@@ -228,66 +228,123 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
         .slideY(begin: 0.3, end: 0);
   }
 
-  List<Widget> _buildTransferDetailRows(String transferType, ThemeData theme) {
-    final details = <Widget>[];
-    
-    switch (transferType) {
-      case 'user':
-        details.addAll([
-          _buildDetailRow('Bénéficiaire', widget.transferData['recipient'], theme, Icons.person),
-          _buildDetailRow('Type', 'Transfert utilisateur', theme, Icons.swap_horiz),
-        ]);
-        break;
-      case 'bank':
-        details.addAll([
-          _buildDetailRow('Banque expéditrice', widget.transferData['senderBankName'], theme, Icons.account_balance),
-          _buildDetailRow('Compte destinataire', widget.transferData['receiverAccountNumber'], theme, Icons.credit_card),
-          _buildDetailRow('Type', 'Transfert bancaire', theme, Icons.swap_horiz),
-        ]);
-        break;
+  Future<String?> getUserNameByAccountNumber(String accountNumber) async {
+    try {
+      final transfertProvider = Provider.of<TransfertProvider>(context, listen: false);
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      
+      final userId = await transfertProvider.getUserIdByAccountNumber(accountNumber);
+      if (userId == null) return null;
+      
+      final user = await authProvider.getUserById(userId);
+      if (user != null) {
+        return '${user.firstName} ${user.lastName}'.toUpperCase();
+      }
+      
+      return null;
+    } catch (e) {
+      debugPrint('Erreur getUserNameByAccountNumber: $e');
+      return null;
     }
-    
-    details.addAll([
-      _buildDetailRow('Montant', '${widget.transferData['amount'].toStringAsFixed(0)} XAF', theme, Icons.money),
-      _buildDetailRow('Date', _getCurrentDateTime(), theme, Icons.schedule),
-      if (widget.transferData['reason']?.isNotEmpty == true)
-        _buildDetailRow('Motif', widget.transferData['reason'], theme, Icons.note),
-    ]);
-    
-    return details;
   }
 
-  Widget _buildDetailRow(String label, String value, ThemeData theme, IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 20, color: theme.primaryColor.withValues(alpha: 0.7)),
-          const SizedBox(width: 12),
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: theme.colorScheme.onSurface,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+
+List<Widget> _buildTransferDetailRows(String transferType, ThemeData theme) {
+  final details = <Widget>[];
+  final cardProvider = Provider.of<CardProvider>(context, listen: false);
+
+  debugPrint("==============================");
+  cardProvider.getCardBasicInfo(unformatAccountNumber(widget.transferData['receiverAccountNumber']));
+
+  switch (transferType) {
+    case 'user':
+      details.addAll([
+        _buildDetailRow('Bénéficiaire', widget.transferData['recipient'], theme, Icons.person),
+        // Utiliser FutureBuilder pour gérer l'appel asynchrone
+        FutureBuilder<String?>(
+          future: getUserNameByAccountNumber(widget.transferData['recipient']),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return _buildDetailRow(
+                'Nom', 
+                'Chargement...', 
+                theme, 
+                Icons.note,
+                trailing: SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              );
+            } else if (snapshot.hasError) {
+              return _buildDetailRow('Nom', 'Erreur de chargement', theme, Icons.note);
+            } else {
+              return _buildDetailRow(
+                'Nom', 
+                snapshot.data ?? 'Nom indisponible', 
+                theme, 
+                Icons.note
+              );
+            }
+          },
+        ),
+        _buildDetailRow('Type', 'Transfert utilisateur', theme, Icons.swap_horiz),
+      ]);
+      break;
+    case 'bank':
+      details.addAll([
+        _buildDetailRow('Banque expéditrice', widget.transferData['senderBankName'], theme, Icons.account_balance),
+        _buildDetailRow('Compte destinataire', widget.transferData['receiverAccountNumber'], theme, Icons.credit_card),
+        _buildDetailRow('Type', 'Transfert bancaire', theme, Icons.swap_horiz),
+      ]);
+      break;
   }
+  
+  details.addAll([
+    _buildDetailRow('Montant', '${widget.transferData['amount'].toStringAsFixed(0)} XAF', theme, Icons.money),
+    _buildDetailRow('Date', _getCurrentDateTime(), theme, Icons.schedule),
+  ]);
+  
+  return details;
+}
+
+
+Widget _buildDetailRow(String label, String value, ThemeData theme, IconData icon, {Widget? trailing}) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 16),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 20, color: theme.primaryColor.withValues(alpha: 0.7)),
+        const SizedBox(width: 12),
+        SizedBox(
+          width: 120,
+          child: Text(
+            label,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+        ),
+        // Ajouter le widget trailing s'il est fourni
+        if (trailing != null) ...[
+          const SizedBox(width: 8),
+          trailing,
+        ],
+      ],
+    ),
+  );
+}
 
   Widget _buildFeesSection(ThemeData theme) {
     final amount = widget.transferData['amount'] as double;
@@ -949,7 +1006,7 @@ class _TransferConfirmationScreenState extends State<TransferConfirmationScreen>
                         Icons.person,
                         Colors.blue[700]!,
                       )
-                    else
+                    else 
                       _buildSuccessDetailRow(
                         'Compte destinataire',
                         widget.transferData['receiverAccountNumber'],

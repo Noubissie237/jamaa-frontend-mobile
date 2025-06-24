@@ -32,10 +32,12 @@ class TransfertProvider extends ChangeNotifier {
   bool _isTransferring = false;
   TransfertError? _error;
   Transfert? _lastTransfert;
+  String _userId = '';
   String? _lastBankTransfertId; // Pour stocker l'ID du dernier transfert bancaire
 
   // Getters
   List<Transfert> get transferts => _transferts;
+  String get tmpUserId => _userId;
   bool get isLoading => _isLoading;
   bool get isTransferring => _isTransferring;
   TransfertError? get error => _error;
@@ -43,6 +45,48 @@ class TransfertProvider extends ChangeNotifier {
   String? get lastBankTransfertId => _lastBankTransfertId;
   bool get hasError => _error != null;
   bool get hasData => _transferts.isNotEmpty;
+
+Future<String?> getUserIdByAccountNumber(String accountNumber) async {
+  _clearError();
+
+  try {
+    const String endpoint = ApiConstants.accountServiceUrl;
+    final String query = '''
+      query {
+        getAccountByAccountNumber(accountNumber: "$accountNumber") {
+          userId
+        }
+      }
+    ''';
+
+    final response = await _makeGraphQLRequest(endpoint, query);
+    
+    if (!response.isSuccess) {
+      _setError(response.error!);
+      return null;
+    }
+
+    final accountData = response.data?['data']?['getAccountByAccountNumber'];
+    if (accountData == null) {
+      _setError(TransfertError(
+        message: 'Données de compte non trouvées',
+        details: 'Aucune donnée de compte retournée',
+        type: 'DATA_NOT_FOUND',
+      ));
+      return null;
+    }
+
+    _userId = accountData['userId'];
+    return _userId; // Retourner l'userId
+  } catch (e) {
+    _setError(TransfertError(
+      message: 'Erreur lors de la récupération de l\'userId',
+      details: e.toString(),
+      type: 'ACCOUNT_FETCH_ERROR',
+    ));
+    return null;
+  }
+}
 
   // Méthode pour effectuer un transfert d'application
   Future<bool> makeAppTransfert({
